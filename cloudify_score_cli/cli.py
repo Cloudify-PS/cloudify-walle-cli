@@ -1,16 +1,18 @@
 import click
-from cloudify_score_cli import get_logger
-
+from cloudify_score_cli import (get_logger, load_config, save_config,
+                                Configuration)
+from login import login_to_openstack
+from cloudify_score_cli import get_score_client
 
 default_operation = 'list'
 LOGGER = 'LOGGER'
+CONFIG = 'CONFIG'
 
 
 @click.group()
 @click.option('--debug/--no-debug', default=False)
 @click.pass_context
 def cli(ctx, debug):
-    ctx.obj[LOGGER].debug('cli') 
     ctx.obj['DEBUG'] = debug
 
 
@@ -22,15 +24,23 @@ def cli(ctx, debug):
 @click.option('-s', '--score-host', 'score_host',
               metavar='<score>', help='URL of the Score server')
 def login(ctx, user, password, host, score_host):
-    ctx.obj[LOGGER].debug('login')    
+    ctx.obj[LOGGER].debug('login')   
+    token = login_to_openstack(user, password, host)
+    openstack = Configuration
+    openstack.user = user
+    openstack.password = password
+    openstack.host = host
+    openstack.token = token
+    openstack.score_host = score_host
+    save_config(openstack)
 
 
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation,
-                metavar='[list | info | validate | upload | delete | status]',
+                metavar='[list | info | validate | upload | delete ]',
                 type=click.Choice(['list', 'info', 'validate', 'upload',
-                                   'delete', 'status']))
+                                   'delete']))
 @click.option('-b', '--blueprint', 'blueprint_id', default='',
               metavar='<blueprint-id>',
               help='Name of the blueprint to create')
@@ -38,8 +48,11 @@ def login(ctx, user, password, host, score_host):
               default=None, metavar='<blueprint-file>',
               help='Local file name of the blueprint to upload',
               type=click.Path(exists=True))                
-def blueprint(ctx, operation, blueprint_id, blueprint_file):
+def blueprints(ctx, operation, blueprint_id, blueprint_file):
     ctx.obj[LOGGER].debug('blueprint')
+    if not valid_config(ctx.obj[CONFIG]):
+        return
+    proceed_blueprint(config, logger, operation, blueprint_id, blueprint_file)
 
 
 @cli.command()
@@ -65,9 +78,17 @@ def blueprint(ctx, operation, blueprint_id, blueprint_file):
               is_flag=True, default=False, help='Show events')
 @click.option('-e', '--execution', default=None,
               metavar='<execution-id>', help='Execution Id')
-def deployment(ctx, operation, deployment_id, blueprint_id,
+def deployments(ctx, operation, deployment_id, blueprint_id,
                input_file, workflow, show_events, execution):
     ctx.obj[LOGGER].debug('deployment')
+    if not valid_config(ctx.obj[CONFIG]):
+        return
+
+
+@cli.command()
+@click.pass_context
+def executions(ctx):
+    pass
 
 
 @cli.command()
@@ -86,11 +107,28 @@ def deployment(ctx, operation, deployment_id, blueprint_id,
 @click.option('-l', '--show-logs', 'show_logs',
               is_flag=True, default=False,
               help='Show logs for event')
-def event(ctx, operation, execution, from_event, batch_size, show_logs):
+def events(ctx, operation, execution, from_event, batch_size, show_logs):
     ctx.obj[LOGGER].debug('event')    
+    if not valid_config(ctx.obj[CONFIG]):
+        return
+
+
+@cli.command()
+@click.pass_context
+def status(ctx):
+    client = get_score_client(ctx.obj[CONFIG])
+    status_result = client.manager.get_status()    
+    print status_result 
+
+
+def valid_config(config):
+    if not config:
+        click.echo('Empty config')
+    return config
 
 
 if __name__ == '__main__':
     logger = get_logger()
-    cli(obj={LOGGER:logger})
+    config = load_config(logger)
+    cli(obj={LOGGER:logger, CONFIG:config})
 
