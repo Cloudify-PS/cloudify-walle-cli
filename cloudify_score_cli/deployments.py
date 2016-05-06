@@ -14,7 +14,8 @@ def proceed_deployments(client, logger, operation, deployment_id, blueprint_id,
 
 def _list(client, logger, *args):
     logger.info('Getting deployments list...')
-#    deployments = client.deployments.list()
+    deployments = client.deployments.list()
+    print deployments
 
 
 def _info(client, logger, deployment_id, blueprint_id, input_file):

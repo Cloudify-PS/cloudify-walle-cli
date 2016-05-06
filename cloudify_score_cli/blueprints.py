@@ -11,7 +11,8 @@ def proceed_blueprint(client, logger, operation, blueprint_id, blueprint_file):
 
 def _list(client, logger, *args):
     logger.info('Getting blueprints list...')
-#    blueprints = client.blueprints.list()
+    blueprints = client.blueprints.list()
+    print blueprints
 
 
 def _validate(client, logger, blueprint_id, blueprint_file):

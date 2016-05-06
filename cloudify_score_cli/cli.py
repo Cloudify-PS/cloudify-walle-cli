@@ -28,19 +28,21 @@ def cli(ctx, debug):
 @click.option('-p', '--password', metavar='<password>', help='Password')
 @click.option('-h', '--host', metavar='<host>', help='Openstack host')
 @click.option('-t', '--tenant', metavar='<tenant-name>', help='Tenant name')
-@click.option('-n', '--project', metavar='<project-name>', help='Project name')
-@click.option('-r', '--region', metavar='<region-name>', help='Region name')
 @click.option('-s', '--score-host', 'score_host',
               metavar='<score>', help='URL of the Score server')
-def login(ctx, user, password, host, tenant, project, region, score_host):
-    ctx.obj[LOGGER].debug('login')
-    token = login_to_openstack(user, password, host)
+def login(ctx, user, password, host, tenant, score_host):
+    logger = ctx.obj[LOGGER]
+    logger.debug('login')
+    token = login_to_openstack(logger, user, password, host, tenant, score_host)
+    if not token:
+        print "Wrong credentials"
     openstack = Configuration
     openstack.user = user
     openstack.password = password
     openstack.host = host
     openstack.token = token
     openstack.score_host = score_host
+    openstack.tenant = tenant
     save_config(openstack)
 
 
@@ -58,11 +60,14 @@ def login(ctx, user, password, host, tenant, project, region, score_host):
               help='Local file name of the blueprint to upload',
               type=click.Path(exists=True))
 def blueprints(ctx, operation, blueprint_id, blueprint_file):
-    ctx.obj[LOGGER].debug('blueprint')
-    client = _get_score_client(ctx.obj[CONFIG])
+    logger = ctx.obj[LOGGER]
+    logger.debug('blueprint')
+    client = _get_score_client(ctx.obj[CONFIG], logger)
     if not client:
         return
-    proceed_blueprint(client, logger, operation, blueprint_id, blueprint_file)
+    proceed_blueprint(
+        client, logger, operation, blueprint_id, blueprint_file
+    )
 
 
 @cli.command()
@@ -82,12 +87,15 @@ def blueprints(ctx, operation, blueprint_id, blueprint_file):
               type=click.File('r'))
 def deployments(ctx, operation, deployment_id, blueprint_id,
                 input_file):
-    ctx.obj[LOGGER].debug('deployment')
-    client = _get_score_client(ctx.obj[CONFIG])
+    logger = ctx.obj[LOGGER]
+    logger.debug('deployment')
+    client = _get_score_client(ctx.obj[CONFIG], logger)
     if not client:
         return
-    proceed_deployments(client, logger, operation, deployment_id, blueprint_id,
-                        input_file)
+    proceed_deployments(
+        client, logger, operation, deployment_id, blueprint_id,
+        input_file
+    )
 
 
 @cli.command()
@@ -102,8 +110,9 @@ def deployments(ctx, operation, deployment_id, blueprint_id,
               metavar='<parameters>', help='Execution parameters')
 @click.pass_context
 def executions(ctx, operation, workflow, deployment, parameters):
-    ctx.obj[LOGGER].debug('executions')
-    client = _get_score_client(ctx.obj[CONFIG])
+    logger = ctx.obj[LOGGER]
+    logger.debug('executions')
+    client = _get_score_client(ctx.obj[CONFIG], logger)
     if not client:
         return
     proceed_executions(client, logger, operation, workflow,
@@ -127,8 +136,9 @@ def executions(ctx, operation, workflow, deployment, parameters):
               is_flag=True, default=False,
               help='Show logs for event')
 def events(ctx, operation, execution, from_event, batch_size, show_logs):
-    ctx.obj[LOGGER].debug('event')
-    client = _get_score_client(ctx.obj[CONFIG])
+    logger = ctx.obj[LOGGER]
+    logger.debug('event')
+    client = _get_score_client(ctx.obj[CONFIG], logger)
     if not client:
         return
     proceed_events(client, logger, operation, execution, from_event,
@@ -138,22 +148,27 @@ def events(ctx, operation, execution, from_event, batch_size, show_logs):
 @cli.command()
 @click.pass_context
 def status(ctx):
+    logger = ctx.obj[LOGGER]
     ctx.obj[LOGGER].debug('status')
-    client = _get_score_client(ctx.obj[CONFIG])
+    client = _get_score_client(ctx.obj[CONFIG], logger)
     if not client:
         return
-    status_result = client.manager.get_status()
+    status_result = client.get_status()
     print status_result
 
 
-def _get_score_client(config):
+def _get_score_client(config, logger):
     if not config:
         click.echo('Empty config')
         return None
-    return get_score_client(config)
+    return get_score_client(config, logger)
 
 
-if __name__ == '__main__':
+def main():
     logger = get_logger()
     config = load_config(logger)
     cli(obj={LOGGER: logger, CONFIG: config})
+
+
+if __name__ == '__main__':
+    main()
