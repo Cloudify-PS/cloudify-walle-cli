@@ -17,15 +17,20 @@ def _list(client, logger, *args):
 
 def _validate(client, logger, blueprint_id, blueprint_file):
     logger.info('Validate blueprint {0}'.format(blueprint_id))
-    client.blueprints.validate(blueprint_file)
+    print client.blueprints.validate(blueprint_file)
 
 
 def _upload(client, logger, blueprint_id, blueprint_file):
     logger.info('Upload blueprint {0}, file: {1}'.format(blueprint_id,
                                                          blueprint_file))
+    if not blueprint_id or not blueprint_file:
+        logger.info('Please check parameters.')
+        return
     client.blueprints.upload(blueprint_file, blueprint_id)
+    logger.info('Upload blueprint {0}: done'.format(blueprint_id))
 
 
 def _delete(client, logger, blueprint_id, blueprint_file):
     logger.info('Delete blueprint {0}'.format(blueprint_id))
     client.blueprints.delete(blueprint_id)
+    logger.info('Delete blueprint {0}: done'.format(blueprint_id))

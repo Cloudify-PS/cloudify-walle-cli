@@ -83,8 +83,7 @@ class BlueprintsClient(object):
         self.score.response = requests.delete(self.score.url +
                                           '/blueprints/%s' % blueprint_id,
                                           headers=self.score.get_headers(),
-                                          verify=self.score.verify,
-                                          logger=self.logger)
+                                          verify=self.score.verify)
         if self.score.response.status_code != requests.codes.ok:
             return None
         return json.loads(self.score.response.content)
@@ -131,8 +130,12 @@ class BlueprintsClient(object):
         with open(tar_file, 'rb') as f:
             self.score.response = requests.put(url, headers=headers,
                                            params=query_params,
-                                           data=f, verify=self.score.verify,
-                                           logger=self.logger)
+                                           data=f, verify=self.score.verify)
+
+        self.logger.info('response {}: {}'.format(
+            self.score.response.status_code,
+            self.score.response.content
+        ))
 
         if self.score.response.status_code not in range(200, 210):
             return None
@@ -168,8 +171,7 @@ class DeploymentsClient(object):
             self.score.url + '/deployments/%s' % deployment_id,
             params={"ignore_live_nodes": force_delete},
             headers=self.score.get_headers(),
-            verify=self.score.verify,
-            logger=self.logger)
+            verify=self.score.verify)
 
         if self.score.response.status_code != requests.codes.ok:
             return None
@@ -188,6 +190,10 @@ class DeploymentsClient(object):
                                        data=json.dumps(data),
                                        headers=headers,
                                        verify=self.score.verify)
+        self.logger.info('response {}: {}'.format(
+            self.score.response.status_code,
+            self.score.response.content
+        ))
         if self.score.response.status_code != requests.codes.ok:
             return None
         return json.loads(self.score.response.content)
@@ -236,8 +242,7 @@ class ExecutionsClient(object):
         self.score.response = requests.post(self.score.url + '/executions',
                                         headers=headers,
                                         data=json.dumps(data),
-                                        verify=self.score.verify,
-                                        logger=self.logger)
+                                        verify=self.score.verify)
         if self.score.response.status_code != requests.codes.ok:
             return None
         return json.loads(self.score.response.content)
@@ -252,8 +257,7 @@ class ExecutionsClient(object):
         self.score.response = requests.post(
             self.score.url + '/executions/' + execution_id,
             headers=headers, data=json.dumps(data),
-            verify=self.score.verify,
-            logger=self.logger
+            verify=self.score.verify
         )
         if self.score.response.status_code != requests.codes.ok:
             return None
