@@ -25,6 +25,23 @@ from os.path import expanduser
 from dsl_parser import parser
 
 
+class ScoreException(Exception):
+
+    def __init__(self, text):
+        self.text = text
+
+    def __str__(self):
+        return self.text
+
+
+def _check_exception(logger, response):
+    if response.status_code != requests.codes.ok:
+        logger.error('returned %s:%s' % (
+            response.status_code, response.content
+        ))
+        raise ScoreException(response.content)
+
+
 class Score(object):
 
     def __init__(self, url, auth_url=None, token=None, verify=True, logger=None):
@@ -66,8 +83,7 @@ class BlueprintsClient(object):
         self.score.response = requests.get(self.score.url + '/blueprints',
                                        headers=self.score.get_headers(),
                                        verify=self.score.verify)
-        if self.score.response.status_code != requests.codes.ok:
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
     def get(self, blueprint_id):
@@ -75,8 +91,7 @@ class BlueprintsClient(object):
                                        '/blueprints/%s' % blueprint_id,
                                        headers=self.score.get_headers(),
                                        verify=self.score.verify)
-        if self.score.response.status_code != requests.codes.ok:
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
     def delete(self, blueprint_id):
@@ -84,8 +99,7 @@ class BlueprintsClient(object):
                                           '/blueprints/%s' % blueprint_id,
                                           headers=self.score.get_headers(),
                                           verify=self.score.verify)
-        if self.score.response.status_code != requests.codes.ok:
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
     def upload(self, blueprint_path, blueprint_id):
@@ -138,7 +152,7 @@ class BlueprintsClient(object):
         ))
 
         if self.score.response.status_code not in range(200, 210):
-            return None
+            _check_exception(self.logger, self.score.response)
         return self.score.response.json()
 
 
@@ -152,8 +166,7 @@ class DeploymentsClient(object):
         self.score.response = requests.get(self.score.url + '/deployments',
                                        headers=self.score.get_headers(),
                                        verify=self.score.verify)
-        if self.score.response.status_code != requests.codes.ok:
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
     def get(self, deployment_id):
@@ -161,8 +174,7 @@ class DeploymentsClient(object):
                                        '/deployments/%s' % deployment_id,
                                        headers=self.score.get_headers(),
                                        verify=self.score.verify)
-        if self.score.response.status_code != requests.codes.ok:
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
     def delete(self, deployment_id, force_delete=False):
@@ -173,8 +185,7 @@ class DeploymentsClient(object):
             headers=self.score.get_headers(),
             verify=self.score.verify)
 
-        if self.score.response.status_code != requests.codes.ok:
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
     def create(self, blueprint_id, deployment_id, inputs=None):
@@ -190,12 +201,7 @@ class DeploymentsClient(object):
                                        data=json.dumps(data),
                                        headers=headers,
                                        verify=self.score.verify)
-        self.logger.info('response {}: {}'.format(
-            self.score.response.status_code,
-            self.score.response.content
-        ))
-        if self.score.response.status_code != requests.codes.ok:
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
     def outputs(self, deployment_id):
@@ -206,8 +212,7 @@ class DeploymentsClient(object):
                                        headers=headers,
                                        verify=self.score.verify)
 
-        if self.score.response.status_code != requests.codes.ok:
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
 
@@ -222,10 +227,7 @@ class ExecutionsClient(object):
         self.score.response = requests.get(self.score.url + '/executions',
                                        headers=self.score.get_headers(),
                                        params=params, verify=self.score.verify)
-        if self.score.response.status_code != requests.codes.ok:
-            self.logger.error('list executions returned %s' %
-                      self.score.response.status_code)
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
     def start(self, deployment_id, workflow_id, parameters=None,
@@ -243,8 +245,7 @@ class ExecutionsClient(object):
                                         headers=headers,
                                         data=json.dumps(data),
                                         verify=self.score.verify)
-        if self.score.response.status_code != requests.codes.ok:
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
     def cancel(self, execution_id, force=False):
@@ -259,8 +260,7 @@ class ExecutionsClient(object):
             headers=headers, data=json.dumps(data),
             verify=self.score.verify
         )
-        if self.score.response.status_code != requests.codes.ok:
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
 
@@ -283,6 +283,5 @@ class EventsClient(object):
         self.score.response = requests.get(self.score.url + '/events',
                                        headers=headers, data=json.dumps(data),
                                        verify=self.score.verify)
-        if self.score.response.status_code != requests.codes.ok:
-            return None
+        _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
