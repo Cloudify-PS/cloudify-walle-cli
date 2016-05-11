@@ -1,3 +1,17 @@
+# Copyright (c) 2016 GigaSpaces Technologies Ltd. All rights reserved
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import click
 from cloudify_score_cli import (get_logger, load_config, save_config,
                                 Configuration)
@@ -124,7 +138,7 @@ def executions(ctx, operation, workflow, deployment_id, parameters):
 @click.argument('operation', default=default_operation,
                 metavar='[list]',
                 type=click.Choice(['list']))
-@click.option('-e', '--execution' 'execution', metavar='<execution-id>',
+@click.option('-e', '--execution', "execution_id", metavar='<execution-id>',
               required=True, help='Execution Id')
 @click.option('-f', '--from', 'from_event',
               default=0, metavar='<from_event>',
@@ -135,13 +149,13 @@ def executions(ctx, operation, workflow, deployment_id, parameters):
 @click.option('-l', '--show-logs', 'show_logs',
               is_flag=True, default=False,
               help='Show logs for event')
-def events(ctx, operation, execution, from_event, batch_size, show_logs):
+def events(ctx, operation, execution_id, from_event, batch_size, show_logs):
     logger = ctx.obj[LOGGER]
     logger.debug('event')
     client = _get_score_client(ctx.obj[CONFIG], logger)
     if not client:
         return
-    proceed_events(client, logger, operation, execution, from_event,
+    proceed_events(client, logger, operation, execution_id, from_event,
                    batch_size, show_logs)
 
 
