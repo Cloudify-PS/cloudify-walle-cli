@@ -109,14 +109,14 @@ def deployments(ctx, operation, deployment_id, blueprint_id,
 @click.option('-p', '--parameters', default=None,
               metavar='<parameters>', help='Execution parameters')
 @click.pass_context
-def executions(ctx, operation, workflow, deployment, parameters):
+def executions(ctx, operation, workflow, deployment_id, parameters):
     logger = ctx.obj[LOGGER]
     logger.debug('executions')
     client = _get_score_client(ctx.obj[CONFIG], logger)
     if not client:
         return
-    proceed_executions(client, logger, operation, workflow,
-                       deployment, parameters)
+    proceed_executions(client, logger, operation, deployment_id, workflow,
+                       parameters)
 
 
 @cli.command()

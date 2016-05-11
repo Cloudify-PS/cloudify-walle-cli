@@ -1,4 +1,5 @@
 import yaml
+import table_format
 
 
 def proceed_deployments(client, logger, operation, deployment_id, blueprint_id,
@@ -17,13 +18,31 @@ def proceed_deployments(client, logger, operation, deployment_id, blueprint_id,
 
 def _list(client, logger, *args):
     logger.info('Getting deployments list...')
+    format_struct = (
+        ("id", 25),
+        ("blueprint_id", 25),
+        ("created_at", 27),
+        ("updated_at", 27)
+    )
+    table_format.print_header(format_struct)
+
     deployments = client.deployments.list()
-    print deployments
+    if deployments:
+        for deployment in deployments:
+            table_format.print_row(deployment, format_struct)
 
 
 def _info(client, logger, deployment_id, blueprint_id, input_file):
     logger.info('Deployment info {0}'.format(deployment_id))
-    print client.deployments.get(deployment_id)
+    format_struct = (
+        ("id", 25),
+        ("blueprint_id", 25),
+        ("created_at", 27),
+        ("updated_at", 27)
+    )
+    table_format.print_header(format_struct)
+    deployment = client.deployments.get(deployment_id)
+    table_format.print_row(deployment, format_struct)
 
 
 def _create(client, logger, deployment_id, blueprint_id, input_file):

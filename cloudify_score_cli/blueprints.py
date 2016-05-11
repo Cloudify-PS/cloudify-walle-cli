@@ -1,3 +1,5 @@
+import table_format
+
 def proceed_blueprint(client, logger, operation, blueprint_id, blueprint_file):
     operations = {'list': _list,
                   'validate': _validate,
@@ -10,9 +12,25 @@ def proceed_blueprint(client, logger, operation, blueprint_id, blueprint_file):
 
 
 def _list(client, logger, *args):
+    def short(name, size):
+        if len(name) < size:
+            return name
+        else:
+            return name[:size-3] + "..."
+
     logger.info('Getting blueprints list...')
+    format_struct = (
+        ("id", 20),
+        ("description", 35),
+        ("main_file_name", 35),
+        ("created_at", 27),
+        ("updated_at", 27)
+    )
+    table_format.print_header(format_struct)
     blueprints = client.blueprints.list()
-    print blueprints
+    if blueprints:
+        for blueprint in blueprints:
+            table_format.print_row(blueprint, format_struct)
 
 
 def _validate(client, logger, blueprint_id, blueprint_file):
