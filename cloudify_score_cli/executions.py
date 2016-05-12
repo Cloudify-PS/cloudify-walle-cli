@@ -16,13 +16,15 @@ import table_format
 
 
 def proceed_executions(client, logger, operation, deployment_id, workflow_id,
-                       parameters):
+                       parameters, execution_id, force):
     operations = {'list': _list,
                   'start': _start,
-                  'cancel': _cancel,
-                  'get': _get}
+                  'cancel': _cancel}
     try:
-        operations[operation](client, logger, deployment_id, workflow_id, parameters)
+        operations[operation](
+            client, logger, deployment_id, workflow_id, parameters,
+            execution_id, force
+        )
     except KeyError:
         logger.error('Unknown operation')
 
@@ -44,14 +46,17 @@ def _list(client, logger, deployment_id, *args):
         for execution in executions:
             table_format.print_row(execution, format_struct)
 
-def _start(client, logger, deployment_id, workflow_id, parameters):
+def _start(client, logger, deployment_id, workflow_id, parameters, *args):
     logger.info('Executions start {0}'.format(deployment_id))
     print client.executions.start(deployment_id, workflow_id, parameters)
 
 
-def _cancel(client, logger, deployment_id, workflow_id, parameters):
+def _cancel(
+    client, logger, deployment_id, workflow_id, parameters, execution_id,
+    force
+):
     logger.info('Executions cancel {0}'.format(deployment_id))
-
-
-def _get(client, logger, workflow_id, deployment, parameters):
-    logger.info('Executions get {0}'.format(deployment))
+    if not execution_id:
+        logger.info("Execution_d not specified")
+        return
+    print client.executions.cancel(execution_id, force)

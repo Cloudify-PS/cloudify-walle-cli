@@ -17,7 +17,7 @@ import table_format
 
 
 def proceed_deployments(client, logger, operation, deployment_id, blueprint_id,
-                        input_file):
+                        input_file, force):
     operations = {'list': _list,
                   'info': _info,
                   'create': _create,
@@ -25,7 +25,7 @@ def proceed_deployments(client, logger, operation, deployment_id, blueprint_id,
                   'output': _output}
     try:
         operations[operation](client, logger, deployment_id, blueprint_id,
-                              input_file)
+                              input_file, force)
     except KeyError:
         logger.error('Unknown operation')
 
@@ -46,7 +46,7 @@ def _list(client, logger, *args):
             table_format.print_row(deployment, format_struct)
 
 
-def _info(client, logger, deployment_id, _, __):
+def _info(client, logger, deployment_id, *args):
     logger.info('Deployment info {0}'.format(deployment_id))
     if not deployment_id:
         logger.info("Deployment name not specified")
@@ -62,7 +62,7 @@ def _info(client, logger, deployment_id, _, __):
     table_format.print_row(deployment, format_struct)
 
 
-def _create(client, logger, deployment_id, blueprint_id, input_file):
+def _create(client, logger, deployment_id, blueprint_id, input_file, force):
     logger.info('Create deployment {0}, for blueprint: {1}'
                 .format(deployment_id,
                         blueprint_id))
@@ -76,14 +76,16 @@ def _create(client, logger, deployment_id, blueprint_id, input_file):
     logger.info('Create deployments {0}: done'.format(deployment_id))
 
 
-def _delete(client, logger, deployment_id, _, __):
+def _delete(client, logger, deployment_id, blueprint_id, input_file, force):
     logger.info('Delete deployment {0}'.format(deployment_id))
     if not deployment_id:
         logger.info("Deployment name not specified")
         return
-    print client.deployments.delete(deployment_id)
+    if force:
+        logger.info("Delete with force flag.")
+    print client.deployments.delete(deployment_id, force)
 
 
-def _output(client, logger, deployment_id, blueprint_id, input_file):
+def _output(client, logger, deployment_id, *args):
     logger.info('Output for deployment {0}'.format(deployment_id))
     print client.deployments.outputs(deployment_id)

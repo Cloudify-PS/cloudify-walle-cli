@@ -100,8 +100,10 @@ def blueprints(ctx, operation, blueprint_id, blueprint_file):
               help='Local file with the input values '
                    'for the deployment (YAML)',
               type=click.File('r'))
+@click.option('-f', '--force', default=False,
+              metavar='<force>', help='Force operation')
 def deployments(ctx, operation, deployment_id, blueprint_id,
-                input_file):
+                input_file, force):
     logger = ctx.obj[LOGGER]
     logger.debug('deployment')
     config = load_config(logger)
@@ -110,13 +112,13 @@ def deployments(ctx, operation, deployment_id, blueprint_id,
         return
     proceed_deployments(
         client, logger, operation, deployment_id, blueprint_id,
-        input_file
+        input_file, force
     )
 
 
 @cli.command()
 @click.argument('operation', default=default_operation,
-                metavar='[list | start | cancel | get]',
+                metavar='[list | start | cancel]',
                 type=click.Choice(['list', 'start', 'cancel', 'get']))
 @click.option('-w', '--workflow', default=None,
               metavar='<workflow-id>', help='Workflow Id')
@@ -124,8 +126,14 @@ def deployments(ctx, operation, deployment_id, blueprint_id,
               metavar='<deployment-id>', help='Deployment Id')
 @click.option('-p', '--parameters', default=None,
               metavar='<parameters>', help='Execution parameters')
+@click.option('-e', '--execution', "execution_id", metavar='<execution-id>',
+              help='Execution Id')
+@click.option('-f', '--force', default=False,
+              metavar='<force>', help='Force operation')
 @click.pass_context
-def executions(ctx, operation, workflow, deployment_id, parameters):
+def executions(
+    ctx, operation, workflow, deployment_id, parameters, execution_id, force
+):
     logger = ctx.obj[LOGGER]
     logger.debug('executions')
     config = load_config(logger)
@@ -133,7 +141,7 @@ def executions(ctx, operation, workflow, deployment_id, parameters):
     if not client:
         return
     proceed_executions(client, logger, operation, deployment_id, workflow,
-                       parameters)
+                       parameters, execution_id, force)
 
 
 @cli.command()
