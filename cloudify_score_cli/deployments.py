@@ -46,8 +46,11 @@ def _list(client, logger, *args):
             table_format.print_row(deployment, format_struct)
 
 
-def _info(client, logger, deployment_id, blueprint_id, input_file):
+def _info(client, logger, deployment_id, _, __):
     logger.info('Deployment info {0}'.format(deployment_id))
+    if not deployment_id:
+        logger.info("Deployment name not specified")
+        return
     format_struct = (
         ("id", 25),
         ("blueprint_id", 25),
@@ -60,8 +63,9 @@ def _info(client, logger, deployment_id, blueprint_id, input_file):
 
 
 def _create(client, logger, deployment_id, blueprint_id, input_file):
-    logger.info('Create deployments {0}, file: {1}'.format(deployment_id,
-                                                           blueprint_id))
+    logger.info('Create deployment {0}, for blueprint: {1}'
+                .format(deployment_id,
+                        blueprint_id))
     if not deployment_id or not blueprint_id:
         logger.info('Please check parameters.')
         return
@@ -72,8 +76,11 @@ def _create(client, logger, deployment_id, blueprint_id, input_file):
     logger.info('Create deployments {0}: done'.format(deployment_id))
 
 
-def _delete(client, logger, deployment_id, blueprint_id, input_file):
+def _delete(client, logger, deployment_id, _, __):
     logger.info('Delete deployment {0}'.format(deployment_id))
+    if not deployment_id:
+        logger.info("Deployment name not specified")
+        return
     print client.deployments.delete(deployment_id)
 
 
