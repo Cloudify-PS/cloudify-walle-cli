@@ -89,6 +89,7 @@ def _load_openstack_config(logger):
         openstack.score_host = config.get(SECTION, SCORE_HOST, None)
     except ConfigParser.NoSectionError as e:
         logger.info(e)
+        raise RuntimeError("Can't load config. Please use 'login' command")
     return openstack
 
 

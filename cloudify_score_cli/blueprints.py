@@ -14,6 +14,7 @@
 
 import table_format
 
+
 def proceed_blueprint(client, logger, operation, blueprint_id, blueprint_file):
     operations = {'list': _list,
                   'validate': _validate,
@@ -47,9 +48,12 @@ def _list(client, logger, *args):
             table_format.print_row(blueprint, format_struct)
 
 
-def _validate(client, logger, blueprint_id, blueprint_file):
-    logger.info('Validate blueprint {0}'.format(blueprint_id))
-    print client.blueprints.validate(blueprint_file)
+def _validate(client, logger, _, blueprint_file):
+    logger.info('Validate blueprint {0}'.format(blueprint_file))
+    if not blueprint_file:
+        logger.info("Blueprint filename not specified")
+        return
+    client.blueprints.validate(blueprint_file)
 
 
 def _upload(client, logger, blueprint_id, blueprint_file):
@@ -62,7 +66,10 @@ def _upload(client, logger, blueprint_id, blueprint_file):
     logger.info('Upload blueprint {0}: done'.format(blueprint_id))
 
 
-def _delete(client, logger, blueprint_id, blueprint_file):
-    logger.info('Delete blueprint {0}'.format(blueprint_id))
+def _delete(client, logger, blueprint_id, _):
+    logger.info('Delete blueprint: {0}'.format(blueprint_id))
+    if not blueprint_id:
+        logger.info("Blueprint name not specified")
+        return
     client.blueprints.delete(blueprint_id)
     logger.info('Delete blueprint {0}: done'.format(blueprint_id))

@@ -76,7 +76,8 @@ def login(ctx, user, password, host, tenant, score_host):
 def blueprints(ctx, operation, blueprint_id, blueprint_file):
     logger = ctx.obj[LOGGER]
     logger.debug('blueprint')
-    client = _get_score_client(ctx.obj[CONFIG], logger)
+    config = load_config(logger)
+    client = _get_score_client(config, logger)
     if not client:
         return
     proceed_blueprint(
@@ -103,7 +104,8 @@ def deployments(ctx, operation, deployment_id, blueprint_id,
                 input_file):
     logger = ctx.obj[LOGGER]
     logger.debug('deployment')
-    client = _get_score_client(ctx.obj[CONFIG], logger)
+    config = load_config(logger)
+    client = _get_score_client(config, logger)
     if not client:
         return
     proceed_deployments(
@@ -126,7 +128,8 @@ def deployments(ctx, operation, deployment_id, blueprint_id,
 def executions(ctx, operation, workflow, deployment_id, parameters):
     logger = ctx.obj[LOGGER]
     logger.debug('executions')
-    client = _get_score_client(ctx.obj[CONFIG], logger)
+    config = load_config(logger)
+    client = _get_score_client(config, logger)
     if not client:
         return
     proceed_executions(client, logger, operation, deployment_id, workflow,
@@ -152,7 +155,8 @@ def executions(ctx, operation, workflow, deployment_id, parameters):
 def events(ctx, operation, execution_id, from_event, batch_size, show_logs):
     logger = ctx.obj[LOGGER]
     logger.debug('event')
-    client = _get_score_client(ctx.obj[CONFIG], logger)
+    config = load_config(logger)
+    client = _get_score_client(config, logger)
     if not client:
         return
     proceed_events(client, logger, operation, execution_id, from_event,
@@ -164,7 +168,8 @@ def events(ctx, operation, execution_id, from_event, batch_size, show_logs):
 def status(ctx):
     logger = ctx.obj[LOGGER]
     ctx.obj[LOGGER].debug('status')
-    client = _get_score_client(ctx.obj[CONFIG], logger)
+    config = load_config(logger)
+    client = _get_score_client(config, logger)
     if not client:
         return
     status_result = client.get_status()
@@ -180,8 +185,7 @@ def _get_score_client(config, logger):
 
 def main():
     logger = get_logger()
-    config = load_config(logger)
-    cli(obj={LOGGER: logger, CONFIG: config})
+    cli(obj={LOGGER: logger})
 
 
 if __name__ == '__main__':
