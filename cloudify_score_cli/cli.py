@@ -118,7 +118,7 @@ def deployments(ctx, operation, deployment_id, blueprint_id,
 
 @cli.command()
 @click.argument('operation', default=default_operation,
-                metavar='[list | start | cancel]',
+                metavar='[list | start | cancel | get]',
                 type=click.Choice(['list', 'start', 'cancel', 'get']))
 @click.option('-w', '--workflow', default=None,
               metavar='<workflow-id>', help='Workflow Id')

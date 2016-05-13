@@ -19,12 +19,12 @@ def proceed_executions(client, logger, operation, deployment_id, workflow_id,
                        parameters, execution_id, force):
     operations = {'list': _list,
                   'start': _start,
-                  'cancel': _cancel}
+                  'cancel': _cancel,
+                  'get': _get}
     try:
         operations[operation](
             client, logger, deployment_id, workflow_id, parameters,
-            execution_id, force
-        )
+            execution_id, force)
     except KeyError:
         logger.error('Unknown operation')
 
@@ -39,24 +39,28 @@ def _list(client, logger, deployment_id, *args):
         ('created_at', 27)
     )
     table_format.print_header(format_struct)
-
     executions = client.executions.list(deployment_id)
-
     if executions:
         for execution in executions:
             table_format.print_row(execution, format_struct)
 
+
 def _start(client, logger, deployment_id, workflow_id, parameters, *args):
+    if not deployment_id or not workflow_id:
+        logger.info("Please specify workflow and deployment")
+        return
     logger.info('Executions start {0}'.format(deployment_id))
     print client.executions.start(deployment_id, workflow_id, parameters)
 
 
-def _cancel(
-    client, logger, deployment_id, workflow_id, parameters, execution_id,
-    force
-):
-    logger.info('Executions cancel {0}'.format(deployment_id))
+def _cancel(client, logger, deployment_id, workflow_id,
+            parameters, execution_id, force):
+    logger.info('Executions cancel {0}'.format(execution_id))
     if not execution_id:
-        logger.info("Execution_d not specified")
+        logger.info("Execution not specified")
         return
     print client.executions.cancel(execution_id, force)
+
+
+def _get(client, logger, workflow_id, deployment, parameters):
+    logger.info('Executions get {0}'.format(deployment))
