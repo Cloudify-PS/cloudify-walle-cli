@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import table_format
+import pprint
 
 
 def proceed_executions(client, logger, operation, deployment_id, workflow_id,
@@ -62,5 +63,11 @@ def _cancel(client, logger, deployment_id, workflow_id,
     print client.executions.cancel(execution_id, force)
 
 
-def _get(client, logger, workflow_id, deployment, parameters):
-    logger.info('Executions get {0}'.format(deployment))
+def _get(client, logger, workflow_id, deployment, parameters,
+         execution_id, force):
+    logger.info('Executions get {0}'.format(execution_id))
+    if not execution_id:
+        logger.info("Execution not specified")
+        return
+    pp = pprint.PrettyPrinter(indent=2)
+    pp.pprint(client.executions.get(execution_id))

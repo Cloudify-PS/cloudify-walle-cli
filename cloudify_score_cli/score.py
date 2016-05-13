@@ -44,7 +44,8 @@ def _check_exception(logger, response):
 
 class Score(object):
 
-    def __init__(self, url, auth_url=None, token=None, verify=True, logger=None):
+    def __init__(self, url, auth_url=None, token=None,
+                 verify=True, logger=None):
         self.url = url
         self.auth_url = auth_url
         self.token = token
@@ -81,8 +82,8 @@ class BlueprintsClient(object):
 
     def list(self):
         self.score.response = requests.get(self.score.url + '/blueprints',
-                                       headers=self.score.get_headers(),
-                                       verify=self.score.verify)
+                                           headers=self.score.get_headers(),
+                                           verify=self.score.verify)
         _check_exception(self.logger, self.score.response)
         return json.loads(self.score.response.content)
 
@@ -258,6 +259,17 @@ class ExecutionsClient(object):
         self.score.response = requests.post(
             self.score.url + '/executions/' + execution_id,
             headers=headers, data=json.dumps(data),
+            verify=self.score.verify
+        )
+        _check_exception(self.logger, self.score.response)
+        return json.loads(self.score.response.content)
+
+    def get(self, execution_id):
+        headers = self.score.get_headers()
+        headers['Content-type'] = 'application/json'
+        self.score.response = requests.get(
+            self.score.url + '/executions/' + execution_id,
+            headers=headers,
             verify=self.score.verify
         )
         _check_exception(self.logger, self.score.response)
