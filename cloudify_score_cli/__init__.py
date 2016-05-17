@@ -27,6 +27,7 @@ PASSWORD = 'password'
 HOST = 'host'
 TENANT = 'tenant'
 TOKEN = 'token'
+REGION = 'region'
 SCORE_HOST = 'score_host'
 
 DEFAULT_PROTOCOL = 'http'
@@ -69,6 +70,7 @@ def _save_openstack_config(openstack):
     config.set(SECTION, PASSWORD, openstack.password)
     config.set(SECTION, HOST, openstack.host)
     config.set(SECTION, TENANT, openstack.tenant)
+    config.set(SECTION, REGION, openstack.region)
     config.set(SECTION, TOKEN, openstack.token)
     config.set(SECTION, SCORE_HOST, openstack.score_host)
 
@@ -85,6 +87,7 @@ def _load_openstack_config(logger):
         openstack.password = config.get(SECTION, PASSWORD, None)
         openstack.host = config.get(SECTION, HOST, None)
         openstack.tenant = config.get(SECTION, TENANT, None)
+        openstack.region = config.get(SECTION, REGION, None)
         openstack.token = config.get(SECTION, TOKEN, None)
         openstack.score_host = config.get(SECTION, SCORE_HOST, None)
     except ConfigParser.NoSectionError as e:
@@ -96,5 +99,5 @@ def _load_openstack_config(logger):
 def get_score_client(config, logger):
     return score.Score(
         config.score_host, auth_url=config.host, token=config.token,
-        verify=True, logger=logger
+        region=config.region, verify=True, logger=logger
     )

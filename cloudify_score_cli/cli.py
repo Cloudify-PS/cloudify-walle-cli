@@ -42,9 +42,10 @@ def cli(ctx, debug):
 @click.option('-p', '--password', metavar='<password>', help='Password')
 @click.option('-h', '--host', metavar='<host>', help='Openstack host')
 @click.option('-t', '--tenant', metavar='<tenant-name>', help='Tenant name')
+@click.option('-r', '--region', metavar='<region-name>', help='Region name')
 @click.option('-s', '--score-host', 'score_host',
               metavar='<score>', help='URL of the Score server')
-def login(ctx, user, password, host, tenant, score_host):
+def login(ctx, user, password, host, tenant, region, score_host):
     logger = ctx.obj[LOGGER]
     logger.debug('login')
     token = login_to_openstack(logger, user, password, host, tenant, score_host)
@@ -56,6 +57,7 @@ def login(ctx, user, password, host, tenant, score_host):
     openstack.host = host
     openstack.token = token
     openstack.score_host = score_host
+    openstack.region = region
     openstack.tenant = tenant
     save_config(openstack)
 

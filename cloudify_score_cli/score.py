@@ -45,11 +45,12 @@ def _check_exception(logger, response):
 class Score(object):
 
     def __init__(self, url, auth_url=None, token=None,
-                 verify=True, logger=None):
+                 region=None, verify=True, logger=None):
         self.url = url
         self.auth_url = auth_url
         self.token = token
         self.verify = verify
+        self.region = region
         self.response = None
         self.blueprints = BlueprintsClient(self, logger)
         self.deployments = DeploymentsClient(self, logger)
@@ -61,6 +62,7 @@ class Score(object):
         headers = {}
         headers["x-openstack-authorization"] = self.token
         headers["x-openstack-keystore-url"] = self.auth_url
+        headers["x-openstack-keystore-region"] = self.region
         return headers
 
     def get_status(self):
