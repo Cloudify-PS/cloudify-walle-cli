@@ -192,6 +192,8 @@ node_types:
         default: []
       disable_default_egress_rules:
         default: false
+      description:
+        default: ''
     interfaces:
       cloudify.interfaces.lifecycle:
         create:

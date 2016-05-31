@@ -1,3 +1,5 @@
-agent_user: centos
-image: '74ff4015-aee1-4e02-aaa8-1c77b2650394'
-flavor: '196235bc-7ca5-4085-ac81-7e0242bda3f9'
+agent_user: ubuntu
+image: 05bb3a46-ca32-4032-bedd-8d7ebd5c8100
+flavor: 2
+external_network_name: public_admin
+management_network_name: cloudify-management-network

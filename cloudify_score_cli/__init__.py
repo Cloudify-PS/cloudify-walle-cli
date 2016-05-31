@@ -99,5 +99,5 @@ def _load_openstack_config(logger):
 def get_score_client(config, logger):
     return score.Score(
         config.score_host, auth_url=config.host, token=config.token,
-        region=config.region, verify=True, logger=logger
+        region=config.region, tenant=config.tenant, verify=True, logger=logger
     )

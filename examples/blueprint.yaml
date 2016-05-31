@@ -3,20 +3,170 @@ tosca_definitions_version: cloudify_dsl_1_2
 imports:
   - types.yaml
   - openstack.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-fabric-plugin/1.3.1/plugin.yaml
 
 inputs:
   agent_user:
     description: User name used when SSH-ing into the started machine
+    type: string
+
   image:
     description: Openstack image name or id to use for the new server
+    type: string
+
   flavor:
     description: Openstack flavor name or id to use for the new server
+    type: string
+
+  external_network_name:
+    type: string
+
+  management_network_name:
+    type: string
 
 node_templates:
-  vm:
+
+  external_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      use_external_resource: true
+      resource_id: { get_input: external_network_name }
+
+  mongo_host_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    properties:
+      floatingip:
+        floating_network_name: { get_input: external_network_name }
+
+  nodejs_host_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    properties:
+      floatingip:
+        floating_network_name: { get_input: external_network_name }
+
+  mongod_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      security_group:
+        name: mongod_security_group
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 27017
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 28017
+
+  nodecellar_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      security_group:
+        name: nodecellar_security_group
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 8080
+
+  keypair:
+    type: cloudify.openstack.nodes.KeyPair
+    properties:
+        private_key_path: super_secret_path
+
+  mongo_host:
     type: cloudify.openstack.nodes.Server
     properties:
       cloudify_agent:
         user: { get_input: agent_user }
       image: { get_input: image }
       flavor: { get_input: flavor }
+      management_network_name: { get_input: management_network_name }
+
+    relationships:
+
+      - target: mongo_host_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+      - target: mongod_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+
+      - target: keypair
+        type: cloudify.openstack.server_connected_to_keypair
+
+  nodejs_host:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      cloudify_agent:
+        user: { get_input: agent_user }
+      image: { get_input: image }
+      flavor: { get_input: flavor }
+      management_network_name: { get_input: management_network_name }
+
+    relationships:
+
+      - target: nodejs_host_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+      - target: nodecellar_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+
+      - target: keypair
+        type: cloudify.openstack.server_connected_to_keypair
+
+  mongod:
+    type: cloudify.nodes.DBMS
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: mongo_host
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path: scripts/mongo/install-mongo.sh
+            fabric_env:
+              user: { get_input: agent_user }
+              key: { get_attribute: [keypair, private_key, key] }
+              host_string: { get_attribute: [mongo_host_ip, floating_ip_address] }
+
+  nodejs:
+    type: cloudify.nodes.WebServer
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: nodejs_host
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            script_path: scripts/nodejs/install-nodejs.sh
+            fabric_env:
+              user: { get_input: agent_user }
+              key: { get_attribute: [keypair, private_key, key] }
+              host_string: { get_attribute: [nodejs_host_ip, floating_ip_address] }
+
+
+  nodecellar:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: fabric.fabric_plugin.tasks.run_script
+          inputs:
+            MONGO_HOST: { get_attribute: [mongo_host, ip] }
+            script_path: scripts/nodecellar/install-nodecellar-app.sh
+            fabric_env:
+              user: { get_input: agent_user }
+              key: { get_attribute: [keypair, private_key, key] }
+              host_string: { get_attribute: [nodejs_host_ip, floating_ip_address] }
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: nodejs
+      - type: cloudify.relationships.connected_to
+        target: mongod
+
+outputs:
+  endpoint:
+    description: Web application endpoint
+    value:
+      ip_address: { get_attribute: [ nodejs_host_ip, floating_ip_address ] }
