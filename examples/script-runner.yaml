@@ -3,7 +3,7 @@ tosca_definitions_version: cloudify_dsl_1_2
 imports:
   - types.yaml
   - openstack.yaml
-  - https://raw.githubusercontent.com/0lvin/cloudify-fabric-plugin/1.4.1-build/plugin.yaml
+  - https://raw.githubusercontent.com/0lvin/cloudify-script-plugin/1.4-build/plugin.yaml
 
 inputs:
   agent_user:
@@ -123,13 +123,9 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: fabric.fabric_plugin.tasks.run_script
+          implementation: script.script_runner.tasks.run
           inputs:
             script_path: scripts/mongo/install-mongo.sh
-            fabric_env:
-              user: { get_input: agent_user }
-              key: { get_attribute: [keypair, private_key, key] }
-              host_string: { get_attribute: [mongo_host_ip, floating_ip_address] }
 
   nodejs:
     type: cloudify.nodes.WebServer
@@ -139,28 +135,19 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: fabric.fabric_plugin.tasks.run_script
+          implementation: script.script_runner.tasks.run
           inputs:
             script_path: scripts/nodejs/install-nodejs.sh
-            fabric_env:
-              user: { get_input: agent_user }
-              key: { get_attribute: [keypair, private_key, key] }
-              host_string: { get_attribute: [nodejs_host_ip, floating_ip_address] }
-
 
   nodecellar:
     type: cloudify.nodes.ApplicationModule
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: fabric.fabric_plugin.tasks.run_script
+          implementation: script.script_runner.tasks.run
           inputs:
             MONGO_HOST: { get_attribute: [mongo_host, ip] }
             script_path: scripts/nodecellar/install-nodecellar-app.sh
-            fabric_env:
-              user: { get_input: agent_user }
-              key: { get_attribute: [keypair, private_key, key] }
-              host_string: { get_attribute: [nodejs_host_ip, floating_ip_address] }
     relationships:
       - type: cloudify.relationships.contained_in
         target: nodejs
