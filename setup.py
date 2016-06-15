@@ -16,16 +16,16 @@
 from setuptools import setup
 
 setup(
-    name='cloudify_score',
+    name='cloudify_wallie',
     version='1.4a2',
     author='Gigaspaces',
     author_email='cosmo-admin@gigaspaces.com',
-    packages=['cloudify_score_cli'],
+    packages=['cloudify_wallie_cli'],
     license='LICENSE',
-    description='Cloudify CLI for Score service',
+    description='Cloudify CLI for Wallie service',
     entry_points={
         'console_scripts': [
-            'scorecfy = cloudify_score_cli.cli:main']
+            'walliecfy = cloudify_wallie_cli.cli:main']
     },
     install_requires=[
         'cloudify-rest-client',

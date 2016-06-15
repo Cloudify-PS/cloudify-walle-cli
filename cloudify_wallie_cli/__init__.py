@@ -15,11 +15,11 @@
 import logging
 import ConfigParser
 import collections
-import score
+import wallie
 
 _logger = None
 
-CONFIGFILE = '.score'
+CONFIGFILE = '.wallie'
 SECTION = 'Openstack'
 
 USER = 'user'
@@ -28,7 +28,7 @@ HOST = 'host'
 TENANT = 'tenant'
 TOKEN = 'token'
 REGION = 'region'
-SCORE_HOST = 'score_host'
+SCORE_HOST = 'wallie_host'
 
 DEFAULT_PROTOCOL = 'http'
 SECURED_PROTOCOL = 'https'
@@ -37,7 +37,7 @@ SECURED_PROTOCOL = 'https'
 Configuration = collections.namedtuple('Configuration',
                                        'user, password, '
                                        'host, tenant, project, '
-                                       'region, token, score_host')
+                                       'region, token, wallie_host')
 
 
 def get_logger():
@@ -46,7 +46,7 @@ def get_logger():
         return _logger
     log_format = ('%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]'
                   '  %(message)s')
-    _logger = logging.getLogger("score_cli_logger")
+    _logger = logging.getLogger("wallie_cli_logger")
     _logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
     formatter = logging.Formatter(log_format)
@@ -72,7 +72,7 @@ def _save_openstack_config(openstack):
     config.set(SECTION, TENANT, openstack.tenant)
     config.set(SECTION, REGION, openstack.region)
     config.set(SECTION, TOKEN, openstack.token)
-    config.set(SECTION, SCORE_HOST, openstack.score_host)
+    config.set(SECTION, SCORE_HOST, openstack.wallie_host)
 
     with open(CONFIGFILE, 'wb') as configfile:
         config.write(configfile)
@@ -89,15 +89,15 @@ def _load_openstack_config(logger):
         openstack.tenant = config.get(SECTION, TENANT, None)
         openstack.region = config.get(SECTION, REGION, None)
         openstack.token = config.get(SECTION, TOKEN, None)
-        openstack.score_host = config.get(SECTION, SCORE_HOST, None)
+        openstack.wallie_host = config.get(SECTION, SCORE_HOST, None)
     except ConfigParser.NoSectionError as e:
         logger.info(e)
         raise RuntimeError("Can't load config. Please use 'login' command")
     return openstack
 
 
-def get_score_client(config, logger):
-    return score.Score(
-        config.score_host, auth_url=config.host, token=config.token,
+def get_wallie_client(config, logger):
+    return wallie.Wallie(
+        config.wallie_host, auth_url=config.host, token=config.token,
         region=config.region, tenant=config.tenant, verify=True, logger=logger
     )

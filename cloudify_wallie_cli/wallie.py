@@ -25,7 +25,7 @@ from os.path import expanduser
 from dsl_parser import parser
 
 
-class ScoreException(Exception):
+class WallieException(Exception):
 
     def __init__(self, text):
         self.text = text
@@ -39,10 +39,10 @@ def _check_exception(logger, response):
         logger.error('returned %s:%s' % (
             response.status_code, response.content
         ))
-        raise ScoreException(response.content)
+        raise WallieException(response.content)
 
 
-class Score(object):
+class Wallie(object):
 
     def __init__(self, url, auth_url=None, token=None,
                  region=None, tenant=None, verify=True, logger=None):
@@ -77,35 +77,35 @@ class Score(object):
 
 class BlueprintsClient(object):
 
-    def __init__(self, score, logger=None):
-        self.score = score
+    def __init__(self, wallie, logger=None):
+        self.wallie = wallie
         self.logger = logger
 
     def validate(self, blueprint_path):
         return parser.parse_from_path(blueprint_path)
 
     def list(self):
-        self.score.response = requests.get(self.score.url + '/blueprints',
-                                           headers=self.score.get_headers(),
-                                           verify=self.score.verify)
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+        self.wallie.response = requests.get(self.wallie.url + '/blueprints',
+                                           headers=self.wallie.get_headers(),
+                                           verify=self.wallie.verify)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
     def get(self, blueprint_id):
-        self.score.response = requests.get(self.score.url +
+        self.wallie.response = requests.get(self.wallie.url +
                                        '/blueprints/%s' % blueprint_id,
-                                       headers=self.score.get_headers(),
-                                       verify=self.score.verify)
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+                                       headers=self.wallie.get_headers(),
+                                       verify=self.wallie.verify)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
     def delete(self, blueprint_id):
-        self.score.response = requests.delete(self.score.url +
+        self.wallie.response = requests.delete(self.wallie.url +
                                           '/blueprints/%s' % blueprint_id,
-                                          headers=self.score.get_headers(),
-                                          verify=self.score.verify)
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+                                          headers=self.wallie.get_headers(),
+                                          verify=self.wallie.verify)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
     def upload(self, blueprint_path, blueprint_id):
         self.validate(blueprint_path)
@@ -144,54 +144,54 @@ class BlueprintsClient(object):
                 urllib.quote(application_file_name))
 
         uri = '/blueprints/{0}'.format(blueprint_id)
-        url = '{0}{1}'.format(self.score.url, uri)
-        headers = self.score.get_headers()
+        url = '{0}{1}'.format(self.wallie.url, uri)
+        headers = self.wallie.get_headers()
         with open(tar_file, 'rb') as f:
-            self.score.response = requests.put(url, headers=headers,
+            self.wallie.response = requests.put(url, headers=headers,
                                            params=query_params,
-                                           data=f, verify=self.score.verify)
+                                           data=f, verify=self.wallie.verify)
 
         self.logger.info('response {}: {}'.format(
-            self.score.response.status_code,
-            self.score.response.content
+            self.wallie.response.status_code,
+            self.wallie.response.content
         ))
 
-        if self.score.response.status_code not in range(200, 210):
-            _check_exception(self.logger, self.score.response)
-        return self.score.response.json()
+        if self.wallie.response.status_code not in range(200, 210):
+            _check_exception(self.logger, self.wallie.response)
+        return self.wallie.response.json()
 
 
 class DeploymentsClient(object):
 
-    def __init__(self, score, logger=False):
-        self.score = score
+    def __init__(self, wallie, logger=False):
+        self.wallie = wallie
         self.logger = logger
 
     def list(self):
-        self.score.response = requests.get(self.score.url + '/deployments',
-                                       headers=self.score.get_headers(),
-                                       verify=self.score.verify)
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+        self.wallie.response = requests.get(self.wallie.url + '/deployments',
+                                       headers=self.wallie.get_headers(),
+                                       verify=self.wallie.verify)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
     def get(self, deployment_id):
-        self.score.response = requests.get(self.score.url +
+        self.wallie.response = requests.get(self.wallie.url +
                                        '/deployments/%s' % deployment_id,
-                                       headers=self.score.get_headers(),
-                                       verify=self.score.verify)
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+                                       headers=self.wallie.get_headers(),
+                                       verify=self.wallie.verify)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
     def delete(self, deployment_id, force_delete=False):
 
-        self.score.response = requests.delete(
-            self.score.url + '/deployments/%s' % deployment_id,
+        self.wallie.response = requests.delete(
+            self.wallie.url + '/deployments/%s' % deployment_id,
             params={"ignore_live_nodes": force_delete},
-            headers=self.score.get_headers(),
-            verify=self.score.verify)
+            headers=self.wallie.get_headers(),
+            verify=self.wallie.verify)
 
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
     def create(self, blueprint_id, deployment_id, inputs=None):
         data = {
@@ -199,41 +199,41 @@ class DeploymentsClient(object):
         }
         if inputs:
             data['inputs'] = inputs
-        headers = self.score.get_headers()
+        headers = self.wallie.get_headers()
         headers['Content-type'] = 'application/json'
-        self.score.response = requests.put(self.score.url +
+        self.wallie.response = requests.put(self.wallie.url +
                                        '/deployments/%s' % deployment_id,
                                        data=json.dumps(data),
                                        headers=headers,
-                                       verify=self.score.verify)
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+                                       verify=self.wallie.verify)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
     def outputs(self, deployment_id):
-        headers = self.score.get_headers()
-        self.score.response = requests.get(self.score.url +
+        headers = self.wallie.get_headers()
+        self.wallie.response = requests.get(self.wallie.url +
                                        '/deployments/%s/outputs'
                                        % deployment_id,
                                        headers=headers,
-                                       verify=self.score.verify)
+                                       verify=self.wallie.verify)
 
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
 
 class ExecutionsClient(object):
 
-    def __init__(self, score, logger=False):
-        self.score = score
+    def __init__(self, wallie, logger=False):
+        self.wallie = wallie
         self.logger = logger
 
     def list(self, deployment_id):
         params = {'deployment_id': deployment_id}
-        self.score.response = requests.get(self.score.url + '/executions',
-                                       headers=self.score.get_headers(),
-                                       params=params, verify=self.score.verify)
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+        self.wallie.response = requests.get(self.wallie.url + '/executions',
+                                       headers=self.wallie.get_headers(),
+                                       params=params, verify=self.wallie.verify)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
     def start(self, deployment_id, workflow_id, parameters=None,
               allow_custom_parameters=False, force=False):
@@ -244,46 +244,46 @@ class ExecutionsClient(object):
             'allow_custom_parameters': allow_custom_parameters,
             'force': force,
         }
-        headers = self.score.get_headers()
+        headers = self.wallie.get_headers()
         headers['Content-type'] = 'application/json'
-        self.score.response = requests.post(self.score.url + '/executions',
+        self.wallie.response = requests.post(self.wallie.url + '/executions',
                                         headers=headers,
                                         data=json.dumps(data),
-                                        verify=self.score.verify)
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+                                        verify=self.wallie.verify)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
     def cancel(self, execution_id, force=False):
         data = {
             'execution_id': execution_id,
             'force': force
         }
-        headers = self.score.get_headers()
+        headers = self.wallie.get_headers()
         headers['Content-type'] = 'application/json'
-        self.score.response = requests.post(
-            self.score.url + '/executions/' + execution_id,
+        self.wallie.response = requests.post(
+            self.wallie.url + '/executions/' + execution_id,
             headers=headers, data=json.dumps(data),
-            verify=self.score.verify
+            verify=self.wallie.verify
         )
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
     def get(self, execution_id):
-        headers = self.score.get_headers()
+        headers = self.wallie.get_headers()
         headers['Content-type'] = 'application/json'
-        self.score.response = requests.get(
-            self.score.url + '/executions/' + execution_id,
+        self.wallie.response = requests.get(
+            self.wallie.url + '/executions/' + execution_id,
             headers=headers,
-            verify=self.score.verify
+            verify=self.wallie.verify
         )
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)
 
 
 class EventsClient(object):
 
-    def __init__(self, score, logger=False):
-        self.score = score
+    def __init__(self, wallie, logger=False):
+        self.wallie = wallie
         self.logger = logger
 
     def get(self, execution_id, from_event=0, batch_size=100,
@@ -294,10 +294,10 @@ class EventsClient(object):
             "size": batch_size,
             "include_logs": include_logs
         }
-        headers = self.score.get_headers()
+        headers = self.wallie.get_headers()
         headers['Content-type'] = 'application/json'
-        self.score.response = requests.get(self.score.url + '/events',
+        self.wallie.response = requests.get(self.wallie.url + '/events',
                                        headers=headers, data=json.dumps(data),
-                                       verify=self.score.verify)
-        _check_exception(self.logger, self.score.response)
-        return json.loads(self.score.response.content)
+                                       verify=self.wallie.verify)
+        _check_exception(self.logger, self.wallie.response)
+        return json.loads(self.wallie.response.content)

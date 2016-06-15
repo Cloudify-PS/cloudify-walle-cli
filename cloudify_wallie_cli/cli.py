@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import click
-from cloudify_score_cli import (get_logger, load_config, save_config,
+from cloudify_wallie_cli import (get_logger, load_config, save_config,
                                 Configuration)
 from login import login_to_openstack
-from cloudify_score_cli import get_score_client
+from cloudify_wallie_cli import get_wallie_client
 from blueprints import proceed_blueprint
 from deployments import proceed_deployments
 from executions import proceed_executions
@@ -43,12 +43,12 @@ def cli(ctx, debug):
 @click.option('-h', '--host', metavar='<host>', help='Openstack host')
 @click.option('-t', '--tenant', metavar='<tenant-name>', help='Tenant name')
 @click.option('-r', '--region', metavar='<region-name>', help='Region name')
-@click.option('-s', '--score-host', 'score_host',
-              metavar='<score>', help='URL of the Score server')
-def login(ctx, user, password, host, tenant, region, score_host):
+@click.option('-s', '--wallie-host', 'wallie_host',
+              metavar='<wallie>', help='URL of the Wallie server')
+def login(ctx, user, password, host, tenant, region, wallie_host):
     logger = ctx.obj[LOGGER]
     logger.debug('login')
-    token = login_to_openstack(logger, user, password, host, tenant, score_host)
+    token = login_to_openstack(logger, user, password, host, tenant, wallie_host)
     if not token:
         print "Wrong credentials"
     openstack = Configuration
@@ -56,7 +56,7 @@ def login(ctx, user, password, host, tenant, region, score_host):
     openstack.password = password
     openstack.host = host
     openstack.token = token
-    openstack.score_host = score_host
+    openstack.wallie_host = wallie_host
     openstack.region = region
     openstack.tenant = tenant
     save_config(openstack)
@@ -79,7 +79,7 @@ def blueprints(ctx, operation, blueprint_id, blueprint_file):
     logger = ctx.obj[LOGGER]
     logger.debug('blueprint')
     config = load_config(logger)
-    client = _get_score_client(config, logger)
+    client = _get_wallie_client(config, logger)
     if not client:
         return
     proceed_blueprint(
@@ -109,7 +109,7 @@ def deployments(ctx, operation, deployment_id, blueprint_id,
     logger = ctx.obj[LOGGER]
     logger.debug('deployment')
     config = load_config(logger)
-    client = _get_score_client(config, logger)
+    client = _get_wallie_client(config, logger)
     if not client:
         return
     proceed_deployments(
@@ -139,7 +139,7 @@ def executions(
     logger = ctx.obj[LOGGER]
     logger.debug('executions')
     config = load_config(logger)
-    client = _get_score_client(config, logger)
+    client = _get_wallie_client(config, logger)
     if not client:
         return
     proceed_executions(client, logger, operation, deployment_id, workflow,
@@ -166,7 +166,7 @@ def events(ctx, operation, execution_id, from_event, batch_size, show_logs):
     logger = ctx.obj[LOGGER]
     logger.debug('event')
     config = load_config(logger)
-    client = _get_score_client(config, logger)
+    client = _get_wallie_client(config, logger)
     if not client:
         return
     proceed_events(client, logger, operation, execution_id, from_event,
@@ -179,18 +179,18 @@ def status(ctx):
     logger = ctx.obj[LOGGER]
     ctx.obj[LOGGER].debug('status')
     config = load_config(logger)
-    client = _get_score_client(config, logger)
+    client = _get_wallie_client(config, logger)
     if not client:
         return
     status_result = client.get_status()
     print status_result
 
 
-def _get_score_client(config, logger):
+def _get_wallie_client(config, logger):
     if not config:
         click.echo('Empty config')
         return None
-    return get_score_client(config, logger)
+    return get_wallie_client(config, logger)
 
 
 def main():
