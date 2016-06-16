@@ -151,11 +151,6 @@ class BlueprintsClient(object):
                                            params=query_params,
                                            data=f, verify=self.wallie.verify)
 
-        self.logger.info('response {}: {}'.format(
-            self.wallie.response.status_code,
-            self.wallie.response.content
-        ))
-
         if self.wallie.response.status_code not in range(200, 210):
             _check_exception(self.logger, self.wallie.response)
         return self.wallie.response.json()
