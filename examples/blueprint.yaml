@@ -71,7 +71,7 @@ node_templates:
   keypair:
     type: cloudify.openstack.nodes.KeyPair
     properties:
-        private_key_path: super_secret_path
+        private_key_path: super_secret_path_other
 
   mongo_host:
     type: cloudify.openstack.nodes.Server

@@ -16,16 +16,16 @@
 from setuptools import setup
 
 setup(
-    name='cloudify_wallie',
+    name='cloudify_walle',
     version='1.4a2',
     author='Gigaspaces',
     author_email='cosmo-admin@gigaspaces.com',
-    packages=['cloudify_wallie_cli'],
+    packages=['cloudify_walle_cli'],
     license='LICENSE',
-    description='Cloudify CLI for Wallie service',
+    description='Cloudify CLI for Walle service',
     entry_points={
         'console_scripts': [
-            'walliecfy = cloudify_wallie_cli.cli:main']
+            'wallecfy = cloudify_walle_cli.cli:main']
     },
     install_requires=[
         'cloudify-rest-client',

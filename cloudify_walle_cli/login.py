@@ -16,14 +16,14 @@ import requests
 import json
 
 
-def login_to_openstack(logger, user, password, auth_url, tenant_name, wallie_host):
+def login_to_openstack(logger, user, password, auth_url, tenant_name, walle_host):
     payload = {
         "user": user,
         "password": password,
         "auth_url": auth_url,
         "tenant_name": tenant_name
     }
-    r = requests.post(wallie_host + '/login_openstack', data=json.dumps(payload))
+    r = requests.post(walle_host + '/login_openstack', data=json.dumps(payload))
     if r.status_code == 200:
         return json.loads(r.content) ['x-openstack-authorization']
     return None
