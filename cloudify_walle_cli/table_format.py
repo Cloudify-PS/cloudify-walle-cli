@@ -27,7 +27,7 @@ def print_header(colums):
     for (name, size) in colums:
         line += (
             "%" + str(size) + "s|"
-        ) %  (_short_line(name, size))
+        ) % (_short_line(name, size))
     print line
     line = ""
     for (_, size) in colums:
@@ -41,5 +41,5 @@ def print_row(data, colums):
         value = data.get(name)
         line += (
             "%" + str(size) + "s|"
-        ) %  (_short_line(value, size))
+        ) % (_short_line(value, size))
     print line

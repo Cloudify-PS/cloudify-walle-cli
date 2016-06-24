@@ -22,6 +22,7 @@ blueprint_format_struct = (
     ("updated_at", 27)
 )
 
+
 def proceed_blueprint(client, logger, operation, blueprint_id, blueprint_file):
     operations = {'list': _list,
                   'validate': _validate,

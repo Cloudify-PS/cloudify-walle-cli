@@ -1,9 +1,0 @@
-[Openstack]
-user = admin
-password = cloudify1234
-host = http://192.168.0.10:5000/v2.0
-tenant = admin
-region = RegionOne
-token = bf1a1b5ab39f4e4eb0533c329bd0c8c4
-score_host = http://127.0.0.1:5000
-

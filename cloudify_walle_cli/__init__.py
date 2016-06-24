@@ -28,7 +28,8 @@ HOST = 'host'
 TENANT = 'tenant'
 TOKEN = 'token'
 REGION = 'region'
-SCORE_HOST = 'walle_host'
+WALLE_HOST = 'walle_host'
+WALLE_VERIFY = 'verify'
 
 DEFAULT_PROTOCOL = 'http'
 SECURED_PROTOCOL = 'https'
@@ -44,8 +45,8 @@ def get_logger():
     global _logger
     if _logger is not None:
         return _logger
-    log_format = ('%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]'
-                  '  %(message)s')
+    log_format = ('%(filename)s[LINE:%(lineno)d]# %(levelname)-8s'
+                  ' [%(asctime)s]  %(message)s')
     _logger = logging.getLogger("walle_cli_logger")
     _logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()
@@ -72,7 +73,8 @@ def _save_openstack_config(openstack):
     config.set(SECTION, TENANT, openstack.tenant)
     config.set(SECTION, REGION, openstack.region)
     config.set(SECTION, TOKEN, openstack.token)
-    config.set(SECTION, SCORE_HOST, openstack.walle_host)
+    config.set(SECTION, WALLE_HOST, openstack.walle_host)
+    config.set(SECTION, WALLE_VERIFY, openstack.verify)
 
     with open(CONFIGFILE, 'wb') as configfile:
         config.write(configfile)
@@ -89,7 +91,8 @@ def _load_openstack_config(logger):
         openstack.tenant = config.get(SECTION, TENANT, None)
         openstack.region = config.get(SECTION, REGION, None)
         openstack.token = config.get(SECTION, TOKEN, None)
-        openstack.walle_host = config.get(SECTION, SCORE_HOST, None)
+        openstack.walle_host = config.get(SECTION, WALLE_HOST, None)
+        openstack.verify = config.get(SECTION, WALLE_VERIFY, True)
     except ConfigParser.NoSectionError as e:
         logger.info(e)
         raise RuntimeError("Can't load config. Please use 'login' command")
@@ -99,5 +102,6 @@ def _load_openstack_config(logger):
 def get_walle_client(config, logger):
     return walle.Walle(
         config.walle_host, auth_url=config.host, token=config.token,
-        region=config.region, tenant=config.tenant, verify=True, logger=logger
+        region=config.region, tenant=config.tenant, verify=config.verify,
+        logger=logger
     )

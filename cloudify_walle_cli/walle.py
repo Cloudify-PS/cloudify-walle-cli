@@ -92,18 +92,19 @@ class BlueprintsClient(object):
         return json.loads(self.walle.response.content)
 
     def get(self, blueprint_id):
-        self.walle.response = requests.get(self.walle.url +
-                                       '/blueprints/%s' % blueprint_id,
-                                       headers=self.walle.get_headers(),
-                                       verify=self.walle.verify)
+        self.walle.response = requests.get(
+            self.walle.url + '/blueprints/%s' % blueprint_id,
+            headers=self.walle.get_headers(),
+            verify=self.walle.verify)
         _check_exception(self.logger, self.walle.response)
         return json.loads(self.walle.response.content)
 
     def delete(self, blueprint_id):
-        self.walle.response = requests.delete(self.walle.url +
-                                          '/blueprints/%s' % blueprint_id,
-                                          headers=self.walle.get_headers(),
-                                          verify=self.walle.verify)
+        self.walle.response = requests.delete(
+            self.walle.url + '/blueprints/%s' % blueprint_id,
+            headers=self.walle.get_headers(),
+            verify=self.walle.verify
+        )
         _check_exception(self.logger, self.walle.response)
         return json.loads(self.walle.response.content)
 
@@ -147,9 +148,11 @@ class BlueprintsClient(object):
         url = '{0}{1}'.format(self.walle.url, uri)
         headers = self.walle.get_headers()
         with open(tar_file, 'rb') as f:
-            self.walle.response = requests.put(url, headers=headers,
-                                           params=query_params,
-                                           data=f, verify=self.walle.verify)
+            self.walle.response = requests.put(
+                url, headers=headers,
+                params=query_params,
+                data=f, verify=self.walle.verify
+            )
 
         if self.walle.response.status_code not in range(200, 210):
             _check_exception(self.logger, self.walle.response)
@@ -163,17 +166,20 @@ class DeploymentsClient(object):
         self.logger = logger
 
     def list(self):
-        self.walle.response = requests.get(self.walle.url + '/deployments',
-                                       headers=self.walle.get_headers(),
-                                       verify=self.walle.verify)
+        self.walle.response = requests.get(
+            self.walle.url + '/deployments',
+            headers=self.walle.get_headers(),
+            verify=self.walle.verify
+        )
         _check_exception(self.logger, self.walle.response)
         return json.loads(self.walle.response.content)
 
     def get(self, deployment_id):
-        self.walle.response = requests.get(self.walle.url +
-                                       '/deployments/%s' % deployment_id,
-                                       headers=self.walle.get_headers(),
-                                       verify=self.walle.verify)
+        self.walle.response = requests.get(
+            self.walle.url + '/deployments/%s' % deployment_id,
+            headers=self.walle.get_headers(),
+            verify=self.walle.verify
+        )
         _check_exception(self.logger, self.walle.response)
         return json.loads(self.walle.response.content)
 
@@ -196,21 +202,22 @@ class DeploymentsClient(object):
             data['inputs'] = inputs
         headers = self.walle.get_headers()
         headers['Content-type'] = 'application/json'
-        self.walle.response = requests.put(self.walle.url +
-                                       '/deployments/%s' % deployment_id,
-                                       data=json.dumps(data),
-                                       headers=headers,
-                                       verify=self.walle.verify)
+        self.walle.response = requests.put(
+            self.walle.url + '/deployments/%s' % deployment_id,
+            data=json.dumps(data),
+            headers=headers,
+            verify=self.walle.verify
+        )
         _check_exception(self.logger, self.walle.response)
         return json.loads(self.walle.response.content)
 
     def outputs(self, deployment_id):
         headers = self.walle.get_headers()
-        self.walle.response = requests.get(self.walle.url +
-                                       '/deployments/%s/outputs'
-                                       % deployment_id,
-                                       headers=headers,
-                                       verify=self.walle.verify)
+        self.walle.response = requests.get(
+            self.walle.url + '/deployments/%s/outputs' % deployment_id,
+            headers=headers,
+            verify=self.walle.verify
+        )
 
         _check_exception(self.logger, self.walle.response)
         return json.loads(self.walle.response.content)
@@ -224,9 +231,11 @@ class ExecutionsClient(object):
 
     def list(self, deployment_id):
         params = {'deployment_id': deployment_id}
-        self.walle.response = requests.get(self.walle.url + '/executions',
-                                       headers=self.walle.get_headers(),
-                                       params=params, verify=self.walle.verify)
+        self.walle.response = requests.get(
+            self.walle.url + '/executions',
+            headers=self.walle.get_headers(),
+            params=params, verify=self.walle.verify
+        )
         _check_exception(self.logger, self.walle.response)
         return json.loads(self.walle.response.content)
 
@@ -241,10 +250,12 @@ class ExecutionsClient(object):
         }
         headers = self.walle.get_headers()
         headers['Content-type'] = 'application/json'
-        self.walle.response = requests.post(self.walle.url + '/executions',
-                                        headers=headers,
-                                        data=json.dumps(data),
-                                        verify=self.walle.verify)
+        self.walle.response = requests.post(
+            self.walle.url + '/executions',
+            headers=headers,
+            data=json.dumps(data),
+            verify=self.walle.verify
+        )
         _check_exception(self.logger, self.walle.response)
         return json.loads(self.walle.response.content)
 
@@ -291,8 +302,10 @@ class EventsClient(object):
         }
         headers = self.walle.get_headers()
         headers['Content-type'] = 'application/json'
-        self.walle.response = requests.get(self.walle.url + '/events',
-                                       headers=headers, data=json.dumps(data),
-                                       verify=self.walle.verify)
+        self.walle.response = requests.get(
+            self.walle.url + '/events',
+            headers=headers, data=json.dumps(data),
+            verify=self.walle.verify
+        )
         _check_exception(self.logger, self.walle.response)
         return json.loads(self.walle.response.content)

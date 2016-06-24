@@ -45,10 +45,13 @@ def cli(ctx, debug):
 @click.option('-r', '--region', metavar='<region-name>', help='Region name')
 @click.option('-s', '--walle-host', 'walle_host',
               metavar='<walle>', help='URL of the Walle server')
-def login(ctx, user, password, host, tenant, region, walle_host):
+@click.option('-v', '--verify', metavar='<verify>',
+              help='Verify connection', default=True)
+def login(ctx, user, password, host, tenant, region, walle_host, verify):
     logger = ctx.obj[LOGGER]
     logger.debug('login')
-    token = login_to_openstack(logger, user, password, host, tenant, walle_host)
+    token = login_to_openstack(logger, user, password, host, tenant,
+                               walle_host, verify)
     if not token:
         print "Wrong credentials"
     openstack = Configuration
@@ -59,6 +62,7 @@ def login(ctx, user, password, host, tenant, region, walle_host):
     openstack.walle_host = walle_host
     openstack.region = region
     openstack.tenant = tenant
+    openstack.verify = verify
     save_config(openstack)
 
 
