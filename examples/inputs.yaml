@@ -2,4 +2,3 @@ agent_user: ubuntu
 image: 05bb3a46-ca32-4032-bedd-8d7ebd5c8100
 flavor: 2
 external_network_name: public_admin
-management_network_name: cloudify-management-network

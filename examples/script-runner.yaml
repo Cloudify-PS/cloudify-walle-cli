@@ -21,9 +21,6 @@ inputs:
   external_network_name:
     type: string
 
-  management_network_name:
-    type: string
-
 node_templates:
 
   external_network:
@@ -80,7 +77,6 @@ node_templates:
         user: { get_input: agent_user }
       image: { get_input: image }
       flavor: { get_input: flavor }
-      management_network_name: { get_input: management_network_name }
       install_agent: false
 
     relationships:
@@ -101,7 +97,6 @@ node_templates:
         user: { get_input: agent_user }
       image: { get_input: image }
       flavor: { get_input: flavor }
-      management_network_name: { get_input: management_network_name }
       install_agent: false
 
     relationships:
