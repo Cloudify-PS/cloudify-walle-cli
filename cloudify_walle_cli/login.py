@@ -19,7 +19,7 @@ import json
 def login_to_openstack(logger, user, password, auth_url, tenant_name,
                        walle_host, verify):
     payload = {
-        "user": user,
+        "username": user,
         "password": password,
         "auth_url": auth_url,
         "tenant_name": tenant_name

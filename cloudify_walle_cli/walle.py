@@ -89,7 +89,7 @@ class BlueprintsClient(object):
                                            headers=self.walle.get_headers(),
                                            verify=self.walle.verify)
         _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return json.loads(self.walle.response.content)["items"]
 
     def get(self, blueprint_id):
         self.walle.response = requests.get(
@@ -172,7 +172,7 @@ class DeploymentsClient(object):
             verify=self.walle.verify
         )
         _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return json.loads(self.walle.response.content)["items"]
 
     def get(self, deployment_id):
         self.walle.response = requests.get(
@@ -237,7 +237,7 @@ class ExecutionsClient(object):
             params=params, verify=self.walle.verify
         )
         _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return json.loads(self.walle.response.content)["items"]
 
     def start(self, deployment_id, workflow_id, parameters=None,
               allow_custom_parameters=False, force=False):
