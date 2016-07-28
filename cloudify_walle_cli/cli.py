@@ -69,9 +69,9 @@ def login(ctx, user, password, host, tenant, region, walle_host, verify):
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation,
-                metavar='[list |  validate | upload | delete ]',
+                metavar='[list |  validate | upload | delete | archive]',
                 type=click.Choice(['list',  'validate', 'upload',
-                                   'delete']))
+                                   'delete', 'archive']))
 @click.option('-b', '--blueprint', 'blueprint_id', default='',
               metavar='<blueprint-id>',
               help='Name of the blueprint to create')
@@ -79,7 +79,11 @@ def login(ctx, user, password, host, tenant, region, walle_host, verify):
               default=None, metavar='<blueprint-file>',
               help='Local file name of the blueprint to upload',
               type=click.Path(exists=True))
-def blueprints(ctx, operation, blueprint_id, blueprint_file):
+@click.option('-a', '--archive', 'blueprint_archive_file',
+              default=None, metavar='<blueprint-archive-file>',
+              help='File name for the archove of blueprint')
+def blueprints(ctx, operation, blueprint_id, blueprint_file,
+               blueprint_archive_file):
     logger = ctx.obj[LOGGER]
     logger.debug('blueprint')
     config = load_config(logger)
@@ -87,8 +91,8 @@ def blueprints(ctx, operation, blueprint_id, blueprint_file):
     if not client:
         return
     proceed_blueprint(
-        client, logger, operation, blueprint_id, blueprint_file
-    )
+        client, logger, operation, blueprint_id, blueprint_file,
+        blueprint_archive_file)
 
 
 @cli.command()

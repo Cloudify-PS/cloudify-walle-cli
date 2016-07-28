@@ -122,6 +122,16 @@ class BlueprintsClient(object):
         finally:
             shutil.rmtree(tempdir)
 
+    def archive(self, file_name, blueprint_id):
+        self.walle.response = requests.get(
+            self.walle.url + '/blueprints/%s/archive' % blueprint_id,
+            headers=self.walle.get_headers(),
+            verify=self.walle.verify)
+        _check_exception(self.logger, self.walle.response)
+        with open(file_name, "wb") as f:
+            f.write(self.walle.response.content)
+        return
+
     @staticmethod
     def _tar_blueprint(blueprint_path, tempdir):
         blueprint_path = expanduser(blueprint_path)
@@ -237,7 +247,7 @@ class ExecutionsClient(object):
             params=params, verify=self.walle.verify
         )
         _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)["items"]
+        return json.loads(self.walle.response.content)
 
     def start(self, deployment_id, workflow_id, parameters=None,
               allow_custom_parameters=False, force=False):
