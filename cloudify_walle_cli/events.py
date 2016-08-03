@@ -12,40 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import table_format
+import pprint
 
 
-def proceed_events(client, logger, operation, execution_id, from_event,
-                   batch_size, show_logs):
+def proceed_events(client, logger, operation, from_event,
+                   batch_size, blueprint, deployment):
     operations = {'list': _list}
     try:
-        operations[operation](client, logger, execution_id, from_event,
-                              batch_size, show_logs)
+        operations[operation](client, logger, from_event,
+                              batch_size, blueprint, deployment)
     except KeyError:
         logger.error('Unknown operation')
 
 
-def _list(client, logger, execution_id, from_event, batch_size, include_logs):
-    logger.info('Getting executions list...')
-    events = client.events.get(
-        execution_id, from_event, batch_size, include_logs
-    )
-    format_struct = (
-        ('timestamp', 30),
-        ('event_type', 20),
-        ('tags', 10),
-        ('node', 30),
-        ('text', 60)
-    )
-    table_format.print_header(format_struct)
+def _list(client, logger, from_event,
+          batch_size, blueprint, deployment):
+    logger.info('Getting events list...')
+    if not blueprint:
+        logger.info('Please specify blueprint with key -b.')
+        return
+    events = client.events.get(from_event,
+                               batch_size, blueprint, deployment)
+    pp = pprint.PrettyPrinter(indent=2)
     for event in events:
-        if isinstance(event, dict):
-            table_format.print_row({
-                'event_type': event['event_type'],
-                'tags': ",".join(event['tags']),
-                'timestamp': event['timestamp'],
-                'text': event['message']['text'],
-                'node': event.get('context', {}).get('node_id')
-            }, format_struct)
-        else:
-            print event
+        pp.pprint(event)

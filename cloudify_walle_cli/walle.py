@@ -335,23 +335,23 @@ class EventsClient(object):
         self.walle = walle
         self.logger = logger
 
-    def get(self, execution_id, from_event=0, batch_size=100,
-            include_logs=False):
+    def get(self, from_event=0, batch_size=50,
+            blueprint=None, deployment=None):
         data = {
-            "execution_id": execution_id,
-            "from": from_event,
-            "size": batch_size,
-            "include_logs": include_logs
+            "_offset": from_event,
+            "_size": batch_size,
+            "blueprint_id": blueprint
         }
+        if deployment:
+            data["deployment_id"] = deployment
         headers = self.walle.get_headers()
         headers['Content-type'] = 'application/json'
         self.walle.response = requests.get(
             self.walle.url + '/events',
-            headers=headers, data=json.dumps(data),
-            verify=self.walle.verify
-        )
+            headers=headers, params=data,
+            verify=self.walle.verify)
         try:
             _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)
+            return json.loads(self.walle.response.content)['items']
         except WalleException:
             return

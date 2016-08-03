@@ -159,26 +159,26 @@ def executions(
 @click.argument('operation', default=default_operation,
                 metavar='[list]',
                 type=click.Choice(['list']))
-@click.option('-e', '--execution', "execution_id", metavar='<execution-id>',
-              required=True, help='Execution Id')
 @click.option('-f', '--from', 'from_event',
               default=0, metavar='<from_event>',
               help='From event')
 @click.option('-s', '--size', 'batch_size',
               default=100, metavar='<batch_size>',
               help='Size batch of events')
-@click.option('-l', '--show-logs', 'show_logs',
-              is_flag=True, default=False,
-              help='Show logs for event')
-def events(ctx, operation, execution_id, from_event, batch_size, show_logs):
+@click.option('-d', '--deployment', 'deployment_id', default=None,
+              metavar='<deployment-id>', help='Deployment Id')
+@click.option('-b', '--blueprint', 'blueprint_id', default=None,
+              metavar='<blueprint-id>', help='Blueprint Id')
+def events(ctx, operation, from_event,
+           batch_size, blueprint_id, deployment_id):
     logger = ctx.obj[LOGGER]
     logger.debug('event')
     config = load_config(logger)
     client = _get_walle_client(config, logger)
     if not client:
         return
-    proceed_events(client, logger, operation, execution_id, from_event,
-                   batch_size, show_logs)
+    proceed_events(client, logger, operation, from_event,
+                   batch_size, blueprint_id, deployment_id)
 
 
 @cli.command()
