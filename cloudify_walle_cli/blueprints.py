@@ -45,30 +45,30 @@ def _list(client, logger, *args):
             return name[:size-3] + "..."
 
     logger.info('Getting blueprints list...')
-    table_format.print_header(blueprint_format_struct)
     blueprints = client.blueprints.list()
     if blueprints:
+        table_format.print_header(blueprint_format_struct)
         for blueprint in blueprints:
             table_format.print_row(blueprint, blueprint_format_struct)
 
 
 def _validate(client, logger, *args):
     blueprint_file = args[1]
-    logger.info('Validate blueprint {0}'.format(blueprint_file))
     if not blueprint_file:
-        logger.info("Blueprint filename not specified")
+        logger.info("Blueprint filename not specified. Use key -f")
         return
+    logger.info('Validate blueprint {0}'.format(blueprint_file))
     client.blueprints.validate(blueprint_file)
 
 
 def _upload(client, logger, *args):
     blueprint_id = args[0]
     blueprint_file = args[1]
+    if not blueprint_id or not blueprint_file:
+        logger.info('Please check parameters. Use keys -f and -b')
+        return
     logger.info('Upload blueprint {0}, file: {1}'.format(blueprint_id,
                                                          blueprint_file))
-    if not blueprint_id or not blueprint_file:
-        logger.info('Please check parameters.')
-        return
     blueprint = client.blueprints.upload(blueprint_file, blueprint_id)
     logger.info('Upload blueprint {0}: done'.format(blueprint_id))
     table_format.print_header(blueprint_format_struct)
@@ -88,8 +88,9 @@ def _delete(client, logger, *args):
 def _archive(client, logger, *args):
     blueprint_id = args[0]
     blueprint_archive_file = args[2]
-    logger.info('Get blueprint archive: {0}'.format(blueprint_id))
     if not blueprint_id or not blueprint_archive_file:
-        logger.info('Please check parameters.')
+        logger.info('Please use key -a for file archive and '
+                    '-b for the blueprint.')
         return
+    logger.info('Get blueprint archive: {0}'.format(blueprint_id))
     client.blueprints.archive(blueprint_archive_file, blueprint_id)

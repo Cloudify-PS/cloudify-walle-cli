@@ -138,7 +138,7 @@ def deployments(ctx, operation, deployment_id, blueprint_id,
               metavar='<parameters>', help='Execution parameters')
 @click.option('-e', '--execution', "execution_id", metavar='<execution-id>',
               help='Execution Id')
-@click.option('-f', '--force', default=False,
+@click.option('-f', '--force', default="false",
               metavar='<force>', help='Force operation')
 @click.pass_context
 def executions(

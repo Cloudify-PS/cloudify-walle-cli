@@ -39,19 +39,20 @@ def _list(client, logger, deployment_id, *args):
         ('workflow_id', 30),
         ('created_at', 27)
     )
-    table_format.print_header(format_struct)
     executions = client.executions.list(deployment_id)
     if executions:
+        table_format.print_header(format_struct)
         for execution in executions:
             table_format.print_row(execution, format_struct)
 
 
 def _start(client, logger, deployment_id, workflow_id, parameters, *args):
     if not deployment_id or not workflow_id:
-        logger.info("Please specify workflow and deployment")
+        logger.info("Please specify -w for workflow and -d for deployment")
         return
     logger.info('Executions start {0}'.format(deployment_id))
-    print client.executions.start(deployment_id, workflow_id, parameters)
+    pp = pprint.PrettyPrinter(indent=2)
+    pp.pprint(client.executions.start(deployment_id, workflow_id, parameters))
 
 
 def _cancel(client, logger, deployment_id, workflow_id,
@@ -60,7 +61,8 @@ def _cancel(client, logger, deployment_id, workflow_id,
     if not execution_id:
         logger.info("Execution not specified")
         return
-    print client.executions.cancel(execution_id, force)
+    pp = pprint.PrettyPrinter(indent=2)
+    pp.pprint(client.executions.cancel(execution_id, force))
 
 
 def _get(client, logger, workflow_id, deployment, parameters,
