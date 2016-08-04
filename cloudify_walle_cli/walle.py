@@ -36,9 +36,7 @@ class WalleException(Exception):
 
 def _check_exception(logger, response):
     if response.status_code != requests.codes.ok:
-        logger.error('returned %s:%s' % (
-            response.status_code, response.content
-        ))
+        logger.error('ERROR %s' % (response.content))
         raise WalleException(response.content)
 
 
@@ -88,16 +86,22 @@ class BlueprintsClient(object):
         self.walle.response = requests.get(self.walle.url + '/blueprints',
                                            headers=self.walle.get_headers(),
                                            verify=self.walle.verify)
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)["items"]
+        except WalleException:
+            return
 
     def get(self, blueprint_id):
         self.walle.response = requests.get(
             self.walle.url + '/blueprints/%s' % blueprint_id,
             headers=self.walle.get_headers(),
             verify=self.walle.verify)
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)
+        except WalleException:
+            return
 
     def delete(self, blueprint_id):
         self.walle.response = requests.delete(
@@ -105,8 +109,11 @@ class BlueprintsClient(object):
             headers=self.walle.get_headers(),
             verify=self.walle.verify
         )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)
+        except WalleException:
+            return
 
     def upload(self, blueprint_path, blueprint_id):
         self.validate(blueprint_path)
@@ -121,6 +128,16 @@ class BlueprintsClient(object):
             return blueprint
         finally:
             shutil.rmtree(tempdir)
+
+    def archive(self, file_name, blueprint_id):
+        self.walle.response = requests.get(
+            self.walle.url + '/blueprints/%s/archive' % blueprint_id,
+            headers=self.walle.get_headers(),
+            verify=self.walle.verify)
+        _check_exception(self.logger, self.walle.response)
+        with open(file_name, "wb") as f:
+            f.write(self.walle.response.content)
+        return
 
     @staticmethod
     def _tar_blueprint(blueprint_path, tempdir):
@@ -171,8 +188,11 @@ class DeploymentsClient(object):
             headers=self.walle.get_headers(),
             verify=self.walle.verify
         )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)["items"]
+        except WalleException:
+            return
 
     def get(self, deployment_id):
         self.walle.response = requests.get(
@@ -180,8 +200,11 @@ class DeploymentsClient(object):
             headers=self.walle.get_headers(),
             verify=self.walle.verify
         )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)
+        except WalleException:
+            return
 
     def delete(self, deployment_id, force_delete=False):
 
@@ -191,8 +214,11 @@ class DeploymentsClient(object):
             headers=self.walle.get_headers(),
             verify=self.walle.verify)
 
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)
+        except WalleException:
+            return
 
     def create(self, blueprint_id, deployment_id, inputs=None):
         data = {
@@ -208,8 +234,11 @@ class DeploymentsClient(object):
             headers=headers,
             verify=self.walle.verify
         )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)
+        except WalleException:
+            return
 
     def outputs(self, deployment_id):
         headers = self.walle.get_headers()
@@ -219,8 +248,11 @@ class DeploymentsClient(object):
             verify=self.walle.verify
         )
 
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)
+        except WalleException:
+            return
 
 
 class ExecutionsClient(object):
@@ -236,11 +268,14 @@ class ExecutionsClient(object):
             headers=self.walle.get_headers(),
             params=params, verify=self.walle.verify
         )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)["items"]
+        except WalleException:
+            return
 
     def start(self, deployment_id, workflow_id, parameters=None,
-              allow_custom_parameters=False, force=False):
+              allow_custom_parameters="false", force="false"):
         data = {
             'deployment_id': deployment_id,
             'workflow_id': workflow_id,
@@ -256,12 +291,14 @@ class ExecutionsClient(object):
             data=json.dumps(data),
             verify=self.walle.verify
         )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)
+        except WalleException:
+            return
 
-    def cancel(self, execution_id, force=False):
+    def cancel(self, execution_id, force="false"):
         data = {
-            'execution_id': execution_id,
             'force': force
         }
         headers = self.walle.get_headers()
@@ -271,8 +308,11 @@ class ExecutionsClient(object):
             headers=headers, data=json.dumps(data),
             verify=self.walle.verify
         )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)
+        except WalleException:
+            return
 
     def get(self, execution_id):
         headers = self.walle.get_headers()
@@ -282,8 +322,11 @@ class ExecutionsClient(object):
             headers=headers,
             verify=self.walle.verify
         )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)
+        except WalleException:
+            return
 
 
 class EventsClient(object):
@@ -292,20 +335,23 @@ class EventsClient(object):
         self.walle = walle
         self.logger = logger
 
-    def get(self, execution_id, from_event=0, batch_size=100,
-            include_logs=False):
+    def get(self, from_event=0, batch_size=50,
+            blueprint=None, deployment=None):
         data = {
-            "execution_id": execution_id,
-            "from": from_event,
-            "size": batch_size,
-            "include_logs": include_logs
+            "_offset": from_event,
+            "_size": batch_size,
+            "blueprint_id": blueprint
         }
+        if deployment:
+            data["deployment_id"] = deployment
         headers = self.walle.get_headers()
         headers['Content-type'] = 'application/json'
         self.walle.response = requests.get(
             self.walle.url + '/events',
-            headers=headers, data=json.dumps(data),
-            verify=self.walle.verify
-        )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+            headers=headers, params=data,
+            verify=self.walle.verify)
+        try:
+            _check_exception(self.logger, self.walle.response)
+            return json.loads(self.walle.response.content)['items']
+        except WalleException:
+            return

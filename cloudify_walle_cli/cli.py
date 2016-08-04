@@ -69,9 +69,9 @@ def login(ctx, user, password, host, tenant, region, walle_host, verify):
 @cli.command()
 @click.pass_context
 @click.argument('operation', default=default_operation,
-                metavar='[list |  validate | upload | delete ]',
+                metavar='[list |  validate | upload | delete | archive]',
                 type=click.Choice(['list',  'validate', 'upload',
-                                   'delete']))
+                                   'delete', 'archive']))
 @click.option('-b', '--blueprint', 'blueprint_id', default='',
               metavar='<blueprint-id>',
               help='Name of the blueprint to create')
@@ -79,7 +79,11 @@ def login(ctx, user, password, host, tenant, region, walle_host, verify):
               default=None, metavar='<blueprint-file>',
               help='Local file name of the blueprint to upload',
               type=click.Path(exists=True))
-def blueprints(ctx, operation, blueprint_id, blueprint_file):
+@click.option('-a', '--archive', 'blueprint_archive_file',
+              default=None, metavar='<blueprint-archive-file>',
+              help='File name for the archove of blueprint')
+def blueprints(ctx, operation, blueprint_id, blueprint_file,
+               blueprint_archive_file):
     logger = ctx.obj[LOGGER]
     logger.debug('blueprint')
     config = load_config(logger)
@@ -87,8 +91,8 @@ def blueprints(ctx, operation, blueprint_id, blueprint_file):
     if not client:
         return
     proceed_blueprint(
-        client, logger, operation, blueprint_id, blueprint_file
-    )
+        client, logger, operation, blueprint_id, blueprint_file,
+        blueprint_archive_file)
 
 
 @cli.command()
@@ -134,7 +138,7 @@ def deployments(ctx, operation, deployment_id, blueprint_id,
               metavar='<parameters>', help='Execution parameters')
 @click.option('-e', '--execution', "execution_id", metavar='<execution-id>',
               help='Execution Id')
-@click.option('-f', '--force', default=False,
+@click.option('-f', '--force', default="false",
               metavar='<force>', help='Force operation')
 @click.pass_context
 def executions(
@@ -155,26 +159,26 @@ def executions(
 @click.argument('operation', default=default_operation,
                 metavar='[list]',
                 type=click.Choice(['list']))
-@click.option('-e', '--execution', "execution_id", metavar='<execution-id>',
-              required=True, help='Execution Id')
 @click.option('-f', '--from', 'from_event',
               default=0, metavar='<from_event>',
               help='From event')
 @click.option('-s', '--size', 'batch_size',
               default=100, metavar='<batch_size>',
               help='Size batch of events')
-@click.option('-l', '--show-logs', 'show_logs',
-              is_flag=True, default=False,
-              help='Show logs for event')
-def events(ctx, operation, execution_id, from_event, batch_size, show_logs):
+@click.option('-d', '--deployment', 'deployment_id', default=None,
+              metavar='<deployment-id>', help='Deployment Id')
+@click.option('-b', '--blueprint', 'blueprint_id', default=None,
+              metavar='<blueprint-id>', help='Blueprint Id')
+def events(ctx, operation, from_event,
+           batch_size, blueprint_id, deployment_id):
     logger = ctx.obj[LOGGER]
     logger.debug('event')
     config = load_config(logger)
     client = _get_walle_client(config, logger)
     if not client:
         return
-    proceed_events(client, logger, operation, execution_id, from_event,
-                   batch_size, show_logs)
+    proceed_events(client, logger, operation, from_event,
+                   batch_size, blueprint_id, deployment_id)
 
 
 @cli.command()
