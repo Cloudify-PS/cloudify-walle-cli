@@ -21,6 +21,9 @@ from blueprints import proceed_blueprint
 from deployments import proceed_deployments
 from executions import proceed_executions
 from events import proceed_events
+from endpoints import proceed_endpoint
+from tenants import proceed_tenant
+from limits import proceed_limit
 
 default_operation = 'list'
 LOGGER = 'logger'
@@ -179,6 +182,99 @@ def events(ctx, operation, from_event,
         return
     proceed_events(client, logger, operation, from_event,
                    batch_size, blueprint_id, deployment_id)
+
+
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation,
+                metavar='[list, add, delete]',
+                type=click.Choice(['list', 'add', 'delete']))
+@click.option('-e', '--endpoint-id', default='',
+              metavar='<endpoint-id>', help='Endpoint Id')
+@click.option('-t', '--endpoint-type', default='openstack',
+              metavar='<endpoint-type>', help='Endpoint type')
+@click.option('-u', '--endpoint-url', default='',
+              metavar='<endpoint-url>', help='Endpoint url')
+@click.option('-v', '--version', default='',
+              metavar='<version>', help='Endpoint version')
+@click.option('-d', '--description', default='',
+              metavar='<description>', help='Endpoint description')
+def endpoints(ctx, operation, endpoint_id, endpoint_type, endpoint_url,
+              version, description):
+    logger = ctx.obj[LOGGER]
+    logger.debug('endpoints')
+    config = load_config(logger)
+    client = _get_walle_client(config, logger)
+    if not client:
+        return
+    proceed_endpoint(client, logger, operation, endpoint_id,
+                     endpoint_type, endpoint_url, version, description)
+
+
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation,
+                metavar='[list, add, delete, update]',
+                type=click.Choice(['list', 'add', 'delete', 'update']))
+@click.option('-i', '--tenant-id', default='',
+              metavar='<tenant-id>', help='Tenant Id')
+@click.option('-u', '--endpoint-url', default='',
+              metavar='<endpoint-url>', help='Endpoint url')
+@click.option('-t', '--endpoint-type', default='openstack',
+              metavar='<endpoint-type>', help='Endpoint type')
+@click.option('-n', '--tenant-name', default='',
+              metavar='<tenant-name>', help='Tenant name')
+@click.option('-c', '--cloudify-host', default='',
+              metavar='<cloudify-host>', help='Cloudify host')
+@click.option('-p', '--cloudify-port', default='',
+              metavar='<cloudify-port>', help='Cloudify port')
+@click.option('-d', '--description', default='',
+              metavar='<description>', help='Tenant description')
+@click.option('-r', '--create', default='',
+              metavar='<create>', help='Create tenant on low level')
+def tenants(ctx, operation, tenant_id, endpoint_url, endpoint_type,
+            tenant_name, cloudify_host, cloudify_port, description,
+            create):
+    logger = ctx.obj[LOGGER]
+    logger.debug('tenants')
+    config = load_config(logger)
+    client = _get_walle_client(config, logger)
+    if not client:
+        return
+    proceed_tenant(client, logger, operation, tenant_id, endpoint_url,
+                   endpoint_type, tenant_name, cloudify_host,
+                   cloudify_port, description, create)
+
+
+@cli.command()
+@click.pass_context
+@click.argument('operation', default=default_operation,
+                metavar='[list, add, delete, update]',
+                type=click.Choice(['list', 'add', 'delete', 'update']))
+@click.option('-i', '--limit-id', default='',
+              metavar='<limit-id>', help='Limit Id')
+@click.option('-u', '--endpoint-url', default='',
+              metavar='<endpoint-url>', help='Endpoint url')
+@click.option('-t', '--endpoint-type', default='openstack',
+              metavar='<endpoint-type>', help='Endpoint type')
+@click.option('-n', '--tenant-name', default='',
+              metavar='<tenant-name>', help='Tenant name')
+@click.option('-s', '--soft', default='',
+              metavar='<soft>', help='Soft limit')
+@click.option('-d', '--hard', default='',
+              metavar='<hard>', help='Hard limit')
+@click.option('-l', '--limit-type', default='',
+              metavar='<limit-type>', help='Limit type')
+def limits(ctx, operation, limit_id, endpoint_url, endpoint_type,
+           tenant_name, soft, hard, limit_type):
+    logger = ctx.obj[LOGGER]
+    logger.debug('limits')
+    config = load_config(logger)
+    client = _get_walle_client(config, logger)
+    if not client:
+        return
+    proceed_limit(client, logger, operation, limit_id, endpoint_url,
+                  endpoint_type, tenant_name, soft, hard, limit_type)
 
 
 @cli.command()
