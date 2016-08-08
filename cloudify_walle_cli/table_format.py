@@ -16,10 +16,10 @@
 def _short_line(name, size):
     if not name:
         return ""
-    if len(name) < size:
+    if len(str(name)) <= size:
         return name
     else:
-        return name[:size-3] + "..."
+        return str(name)[:size-3] + "..."
 
 
 def print_header(colums):

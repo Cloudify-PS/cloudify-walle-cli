@@ -38,12 +38,6 @@ def proceed_blueprint(client, logger, operation, blueprint_id, blueprint_file,
 
 
 def _list(client, logger, *args):
-    def short(name, size):
-        if len(name) < size:
-            return name
-        else:
-            return name[:size-3] + "..."
-
     logger.info('Getting blueprints list...')
     blueprints = client.blueprints.list()
     if blueprints:
