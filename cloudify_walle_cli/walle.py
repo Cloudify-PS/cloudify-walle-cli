@@ -76,45 +76,79 @@ class Walle(object):
         return self.response.content
 
 
-class BlueprintsClient(object):
+class BaseClient(object):
 
-    def __init__(self, walle, logger=None):
+    def __init__(self, walle, logger=False):
         self.walle = walle
         self.logger = logger
+
+    def _get(self, path, params=None, json_request=True):
+        headers = self.walle.get_headers()
+        if json_request:
+            headers['Content-type'] = 'application/json'
+        self.walle.response = requests.get(
+            self.walle.url + path,
+            headers=headers,
+            params=params,
+            verify=self.walle.verify
+        )
+        _check_exception(self.logger, self.walle.response)
+        return json.loads(self.walle.response.content)
+
+    def _update(self, path, data):
+        headers = self.walle.get_headers()
+        headers['Content-type'] = 'application/json'
+        self.walle.response = requests.put(
+            self.walle.url + path,
+            headers=headers, data=json.dumps(data),
+            verify=self.walle.verify
+        )
+        _check_exception(self.logger, self.walle.response)
+        return json.loads(self.walle.response.content)
+
+    def _add(self, path, data):
+        headers = self.walle.get_headers()
+        headers['Content-type'] = 'application/json'
+        self.walle.response = requests.post(
+            self.walle.url + path,
+            headers=headers, data=json.dumps(data),
+            verify=self.walle.verify
+        )
+        _check_exception(self.logger, self.walle.response)
+        return json.loads(self.walle.response.content)
+
+    def _delete(self, path):
+        self.walle.response = requests.delete(
+            self.walle.url + path,
+            headers=self.walle.get_headers(),
+            verify=self.walle.verify)
+
+        _check_exception(self.logger, self.walle.response)
+        return json.loads(self.walle.response.content)
+
+
+class BlueprintsClient(BaseClient):
 
     def validate(self, blueprint_path):
         return parser.parse_from_path(blueprint_path)
 
     def list(self):
-        self.walle.response = requests.get(self.walle.url + '/blueprints',
-                                           headers=self.walle.get_headers(),
-                                           verify=self.walle.verify)
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)["items"]
+            result = self._get('/blueprints')
+            if result:
+                return result["items"]
         except WalleException:
             return
 
     def get(self, blueprint_id):
-        self.walle.response = requests.get(
-            self.walle.url + '/blueprints/%s' % blueprint_id,
-            headers=self.walle.get_headers(),
-            verify=self.walle.verify)
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)
+            return self._get('/blueprints/%s' % blueprint_id)
         except WalleException:
             return
 
     def delete(self, blueprint_id):
-        self.walle.response = requests.delete(
-            self.walle.url + '/blueprints/%s' % blueprint_id,
-            headers=self.walle.get_headers(),
-            verify=self.walle.verify
-        )
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)
+            return self._delete('/blueprints/%s' % blueprint_id)
         except WalleException:
             return
 
@@ -179,47 +213,25 @@ class BlueprintsClient(object):
         return self.walle.response.json()
 
 
-class DeploymentsClient(object):
-
-    def __init__(self, walle, logger=False):
-        self.walle = walle
-        self.logger = logger
+class DeploymentsClient(BaseClient):
 
     def list(self):
-        self.walle.response = requests.get(
-            self.walle.url + '/deployments',
-            headers=self.walle.get_headers(),
-            verify=self.walle.verify
-        )
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)["items"]
+            result = self._get('/deployments')
+            if result:
+                return result["items"]
         except WalleException:
             return
 
     def get(self, deployment_id):
-        self.walle.response = requests.get(
-            self.walle.url + '/deployments/%s' % deployment_id,
-            headers=self.walle.get_headers(),
-            verify=self.walle.verify
-        )
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)
+            return self._get('/deployments/%s' % deployment_id)
         except WalleException:
             return
 
     def delete(self, deployment_id, force_delete=False):
-
-        self.walle.response = requests.delete(
-            self.walle.url + '/deployments/%s' % deployment_id,
-            params={"ignore_live_nodes": force_delete},
-            headers=self.walle.get_headers(),
-            verify=self.walle.verify)
-
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)
+            return self._delete('/deployments/%s' % deployment_id)
         except WalleException:
             return
 
@@ -231,49 +243,26 @@ class DeploymentsClient(object):
             data['inputs'] = inputs
         headers = self.walle.get_headers()
         headers['Content-type'] = 'application/json'
-        self.walle.response = requests.put(
-            self.walle.url + '/deployments/%s' % deployment_id,
-            data=json.dumps(data),
-            headers=headers,
-            verify=self.walle.verify
-        )
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)
+            return self._update('/deployments/%s' % deployment_id, data)
         except WalleException:
             return
 
     def outputs(self, deployment_id):
-        headers = self.walle.get_headers()
-        self.walle.response = requests.get(
-            self.walle.url + '/deployments/%s/outputs' % deployment_id,
-            headers=headers,
-            verify=self.walle.verify
-        )
-
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)
+            return self._get('/deployments/%s/outputs' % deployment_id)
         except WalleException:
             return
 
 
-class ExecutionsClient(object):
-
-    def __init__(self, walle, logger=False):
-        self.walle = walle
-        self.logger = logger
+class ExecutionsClient(BaseClient):
 
     def list(self, deployment_id):
         params = {'deployment_id': deployment_id}
-        self.walle.response = requests.get(
-            self.walle.url + '/executions',
-            headers=self.walle.get_headers(),
-            params=params, verify=self.walle.verify
-        )
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)["items"]
+            result = self._get('/executions', params, False)
+            if result:
+                return result["items"]
         except WalleException:
             return
 
@@ -286,17 +275,8 @@ class ExecutionsClient(object):
             'allow_custom_parameters': allow_custom_parameters,
             'force': force,
         }
-        headers = self.walle.get_headers()
-        headers['Content-type'] = 'application/json'
-        self.walle.response = requests.post(
-            self.walle.url + '/executions',
-            headers=headers,
-            data=json.dumps(data),
-            verify=self.walle.verify
-        )
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)
+            return self._add('/executions', data)
         except WalleException:
             return
 
@@ -304,39 +284,19 @@ class ExecutionsClient(object):
         data = {
             'force': force
         }
-        headers = self.walle.get_headers()
-        headers['Content-type'] = 'application/json'
-        self.walle.response = requests.post(
-            self.walle.url + '/executions/' + execution_id,
-            headers=headers, data=json.dumps(data),
-            verify=self.walle.verify
-        )
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)
+            return self._add('/executions/' + execution_id, data)
         except WalleException:
             return
 
     def get(self, execution_id):
-        headers = self.walle.get_headers()
-        headers['Content-type'] = 'application/json'
-        self.walle.response = requests.get(
-            self.walle.url + '/executions/' + execution_id,
-            headers=headers,
-            verify=self.walle.verify
-        )
         try:
-            _check_exception(self.logger, self.walle.response)
-            return json.loads(self.walle.response.content)
+            return self._get('/executions/' + execution_id)
         except WalleException:
             return
 
 
-class EventsClient(object):
-
-    def __init__(self, walle, logger=False):
-        self.walle = walle
-        self.logger = logger
+class EventsClient(BaseClient):
 
     def get(self, from_event=0, batch_size=50,
             blueprint=None, deployment=None):
@@ -360,11 +320,7 @@ class EventsClient(object):
             return
 
 
-class EndpointsClient(object):
-
-    def __init__(self, walle, logger=False):
-        self.walle = walle
-        self.logger = logger
+class EndpointsClient(BaseClient):
 
     def add(self, endpoint_type, endpoint_url, version, description):
         data = {
@@ -373,40 +329,16 @@ class EndpointsClient(object):
             'version': version,
             'description': description
         }
-        headers = self.walle.get_headers()
-        headers['Content-type'] = 'application/json'
-        self.walle.response = requests.post(
-            self.walle.url + '/endpoints',
-            headers=headers, data=json.dumps(data),
-            verify=self.walle.verify
-        )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return self._add('/endpoints', data)
 
     def delete(self, endpoint_id):
-        self.walle.response = requests.delete(
-            self.walle.url + '/endpoints/%s' % endpoint_id,
-            headers=self.walle.get_headers(),
-            verify=self.walle.verify)
-
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return self._delete('/endpoints/%s' % endpoint_id)
 
     def list(self):
-        self.walle.response = requests.get(
-            self.walle.url + '/endpoints',
-            headers=self.walle.get_headers(),
-            verify=self.walle.verify
-        )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return self._get('/endpoints')
 
 
-class TenantsClient(object):
-
-    def __init__(self, walle, logger=False):
-        self.walle = walle
-        self.logger = logger
+class TenantsClient(BaseClient):
 
     def add(self, endpoint_url, endpoint_type, tenant_name,
             cloudify_host, cloudify_port, description, create):
@@ -419,35 +351,15 @@ class TenantsClient(object):
             'description': description,
             'create': create
         }
-        headers = self.walle.get_headers()
-        headers['Content-type'] = 'application/json'
-        self.walle.response = requests.post(
-            self.walle.url + '/tenants',
-            headers=headers, data=json.dumps(data),
-            verify=self.walle.verify
-        )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return self._add('/tenants', data)
 
     def delete(self, tenants_id, delete_low="false"):
-        self.walle.response = requests.delete(
-            self.walle.url + '/tenants/%s?delete=%s' % (
-                tenants_id, delete_low
-            ),
-            headers=self.walle.get_headers(),
-            verify=self.walle.verify)
-
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return self._delete('/tenants/%s?delete=%s' % (
+            tenants_id, delete_low
+        ))
 
     def list(self):
-        self.walle.response = requests.get(
-            self.walle.url + '/tenants',
-            headers=self.walle.get_headers(),
-            verify=self.walle.verify
-        )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return self._get('/tenants')
 
     def update(self, tenant_id, endpoint_url, endpoint_type, tenant_name,
                cloudify_host, cloudify_port, description, create):
@@ -461,22 +373,10 @@ class TenantsClient(object):
             'description': description,
             'create': create
         }
-        headers = self.walle.get_headers()
-        headers['Content-type'] = 'application/json'
-        self.walle.response = requests.put(
-            self.walle.url + '/tenants',
-            headers=headers, data=json.dumps(data),
-            verify=self.walle.verify
-        )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return self._update('/tenants', data)
 
 
-class TenantLimitsClient(object):
-
-    def __init__(self, walle, logger=False):
-        self.walle = walle
-        self.logger = logger
+class TenantLimitsClient(BaseClient):
 
     def add(self, endpoint_url, endpoint_type, tenant_name,
             soft, hard, limit_type):
@@ -488,15 +388,7 @@ class TenantLimitsClient(object):
             'hard': hard,
             'limit_type': limit_type
         }
-        headers = self.walle.get_headers()
-        headers['Content-type'] = 'application/json'
-        self.walle.response = requests.post(
-            self.walle.url + '/limits',
-            headers=headers, data=json.dumps(data),
-            verify=self.walle.verify
-        )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return self._add('/limits', data)
 
     def update(self, limit_id, soft, hard, limit_type):
         data = {
@@ -505,30 +397,10 @@ class TenantLimitsClient(object):
             'hard': hard,
             'limit_type': limit_type
         }
-        headers = self.walle.get_headers()
-        headers['Content-type'] = 'application/json'
-        self.walle.response = requests.put(
-            self.walle.url + '/limits',
-            headers=headers, data=json.dumps(data),
-            verify=self.walle.verify
-        )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return self._update('/limits', data)
 
     def delete(self, tenants_id):
-        self.walle.response = requests.delete(
-            self.walle.url + '/limits/%s' % tenants_id,
-            headers=self.walle.get_headers(),
-            verify=self.walle.verify)
-
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return self._delete('/limits/%s' % tenants_id)
 
     def list(self):
-        self.walle.response = requests.get(
-            self.walle.url + '/limits',
-            headers=self.walle.get_headers(),
-            verify=self.walle.verify
-        )
-        _check_exception(self.logger, self.walle.response)
-        return json.loads(self.walle.response.content)
+        return self._get('/limits')
