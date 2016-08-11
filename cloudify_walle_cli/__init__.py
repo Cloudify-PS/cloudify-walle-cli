@@ -34,6 +34,7 @@ WALLE_VERIFY = 'verify'
 DEFAULT_PROTOCOL = 'http'
 SECURED_PROTOCOL = 'https'
 
+API_PREFIX = '/api/v2.1'
 
 Configuration = collections.namedtuple('Configuration',
                                        'user, password, '
@@ -101,7 +102,6 @@ def _load_openstack_config(logger):
 
 def get_walle_client(config, logger):
     return walle.Walle(
-        config.walle_host, auth_url=config.host, token=config.token,
-        region=config.region, tenant=config.tenant, verify=config.verify,
-        logger=logger
-    )
+        config.walle_host + API_PREFIX, auth_url=config.host,
+        token=config.token, region=config.region, tenant=config.tenant,
+        verify=config.verify, logger=logger)

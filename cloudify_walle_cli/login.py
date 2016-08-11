@@ -14,6 +14,7 @@
 
 import requests
 import json
+from cloudify_walle_cli import API_PREFIX
 
 
 def login_to_openstack(logger, user, password, auth_url, tenant_name,
@@ -24,7 +25,7 @@ def login_to_openstack(logger, user, password, auth_url, tenant_name,
         "auth_url": auth_url,
         "tenant_name": tenant_name
     }
-    r = requests.post(walle_host + '/login_openstack',
+    r = requests.post(walle_host +  API_PREFIX + '/login_openstack',
                       data=json.dumps(payload), verify=verify)
     if r.status_code == 200:
         return json.loads(r.content)['x-openstack-authorization']
