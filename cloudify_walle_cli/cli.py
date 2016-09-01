@@ -53,6 +53,7 @@ def cli(ctx, debug):
 def login(ctx, user, password, host, tenant, region, walle_host, verify):
     logger = ctx.obj[LOGGER]
     logger.debug('login')
+    verify = ("true" == str(verify).lower())
     token = login_to_openstack(logger, user, password, host, tenant,
                                walle_host, verify)
     if not token:

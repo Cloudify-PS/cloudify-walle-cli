@@ -93,6 +93,7 @@ def _load_openstack_config(logger):
         openstack.token = config.get(SECTION, TOKEN, None)
         openstack.walle_host = config.get(SECTION, WALLE_HOST, None)
         openstack.verify = config.get(SECTION, WALLE_VERIFY, True)
+        openstack.verify = ("true" == str(openstack.verify).lower())
     except ConfigParser.NoSectionError as e:
         logger.info(e)
         raise RuntimeError("Can't load config. Please use 'login' command")
