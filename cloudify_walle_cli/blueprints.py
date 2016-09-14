@@ -15,8 +15,8 @@
 import table_format
 
 blueprint_format_struct = (
-    ("id", 20),
-    ("description", 35),
+    ("id", 50),
+    ("description", 15),
     ("main_file_name", 35),
     ("created_at", 27),
     ("updated_at", 27)

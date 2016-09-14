@@ -97,32 +97,6 @@ def openstack(ctx, username, password, walle, host, tenant, region, verify):
               callback=validate_empty, help='walle host')
 @click.option('--verify/--no-verify', metavar='<verify>',
               help='Verify connection', default=True)
-def walle(ctx, username, password, walle, verify):
-    "Login to walle as manager"
-    logger = ctx.obj[LOGGER]
-    logger.debug('Openstack login')
-    token = login_to_walle(logger, username, password, walle, verify)
-    if not token:
-        print "Wrong credentials"
-    walleconfig = Configuration
-    walleconfig.user = username
-    walleconfig.password = password
-    walleconfig.token = token
-    walleconfig.walle_host = walle
-    walleconfig.verify = verify
-    save_walle_config(walleconfig)
-
-
-@login.command()
-@click.pass_context
-@click.option('-u', '--username', metavar='<username>',
-              callback=validate_empty, help='username')
-@click.option('-p', '--password', metavar='<password>',
-              callback=validate_empty, help='password')
-@click.option('-w', '--walle', metavar='<walle>',
-              callback=validate_empty, help='walle host')
-@click.option('--verify/--no-verify', metavar='<verify>',
-              help='Verify connection', default=True)
 def vcloud(ctx, username, password, walle, verify):
     "Login to vcloud"
     print "Not implemented."

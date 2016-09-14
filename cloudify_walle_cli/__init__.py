@@ -21,7 +21,6 @@ import json
 _logger = None
 
 CONFIGFILE = '.walle'
-OPENSTACK_SECTION = 'Openstack'
 WALLE_SECTION = 'Walle'
 
 
@@ -40,9 +39,7 @@ SECURED_PROTOCOL = 'https'
 
 
 Configuration = collections.namedtuple('Configuration',
-                                       'user, password, '
-                                       'host, tenant, '
-                                       'region, headers, walle_host, verify')
+                                       'walle_host, verify, headers')
 
 
 def get_logger():
@@ -62,61 +59,25 @@ def get_logger():
 
 def save_openstack_config(openstack):
     config = ConfigParser.RawConfigParser()
-    config.add_section(OPENSTACK_SECTION)
-    config.set(OPENSTACK_SECTION, USER, openstack.user)
-    config.set(OPENSTACK_SECTION, PASSWORD, openstack.password)
-    config.set(OPENSTACK_SECTION, HOST, openstack.host)
-    config.set(OPENSTACK_SECTION, TENANT, openstack.tenant)
-    config.set(OPENSTACK_SECTION, REGION, openstack.region)
-    config.set(OPENSTACK_SECTION, WALLE_HOST, openstack.walle_host)
-    config.set(OPENSTACK_SECTION, WALLE_VERIFY, openstack.verify)
+    config.add_section(WALLE_SECTION)
+    config.set(WALLE_SECTION, WALLE_HOST, openstack.walle_host)
+    config.set(WALLE_SECTION, WALLE_VERIFY, openstack.verify)
     headers = {}
     headers["x-openstack-authorization"] = openstack.token
     headers["x-openstack-keystore-url"] = openstack.host
     headers["x-openstack-keystore-region"] = openstack.region
     headers["x-openstack-keystore-tenant"] = openstack.tenant
-    config.set(OPENSTACK_SECTION, HEADERS, json.dumps(headers))
-
-    with open(CONFIGFILE, 'wb') as configfile:
-        config.write(configfile)
-
-
-def save_walle_config(walleconfig):
-    config = ConfigParser.RawConfigParser()
-    config.add_section(WALLE_SECTION)
-    config.set(WALLE_SECTION, USER, walleconfig.user)
-    config.set(WALLE_SECTION, PASSWORD, walleconfig.password)
-    config.set(WALLE_SECTION, WALLE_HOST, walleconfig.walle_host)
-    config.set(WALLE_SECTION, WALLE_VERIFY, walleconfig.verify)
-    headers = {}
-    headers["x-walle-authorization"] = walleconfig.token
     config.set(WALLE_SECTION, HEADERS, json.dumps(headers))
+
     with open(CONFIGFILE, 'wb') as configfile:
         config.write(configfile)
 
 
 def load_config(logger):
     try:
-        openstack = Configuration
-        config = ConfigParser.ConfigParser()
-        config.read(CONFIGFILE)
-        openstack.user = config.get(OPENSTACK_SECTION, USER, None)
-        openstack.password = config.get(OPENSTACK_SECTION, PASSWORD, None)
-        openstack.host = config.get(OPENSTACK_SECTION, HOST, None)
-        openstack.tenant = config.get(OPENSTACK_SECTION, TENANT, None)
-        openstack.region = config.get(OPENSTACK_SECTION, REGION, None)
-        openstack.walle_host = config.get(OPENSTACK_SECTION, WALLE_HOST, None)
-        openstack.verify = config.get(OPENSTACK_SECTION, WALLE_VERIFY, True)
-        openstack.headers = json.loads(config.get(OPENSTACK_SECTION, HEADERS, {}))
-        return openstack
-    except ConfigParser.NoSectionError:
-        pass
-    try:
         walleconfig = Configuration
         config = ConfigParser.ConfigParser()
         config.read(CONFIGFILE)
-        walleconfig.user = config.get(WALLE_SECTION, USER, None)
-        walleconfig.password = config.get(WALLE_SECTION, PASSWORD, None)
         walleconfig.walle_host = config.get(WALLE_SECTION, WALLE_HOST, None)
         walleconfig.verify = config.get(WALLE_SECTION, WALLE_VERIFY, True)
         walleconfig.headers = json.loads(config.get(WALLE_SECTION, HEADERS, {}))
