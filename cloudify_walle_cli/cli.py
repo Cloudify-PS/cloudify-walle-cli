@@ -14,8 +14,8 @@
 
 import click
 from cloudify_walle_cli import (get_logger, load_config, save_openstack_config,
-                                save_walle_config, Configuration)
-from login import login_to_openstack, login_to_walle
+                                Configuration)
+from login import login_to_openstack
 from cloudify_walle_cli import get_walle_client
 from blueprints import proceed_blueprint
 from deployments import proceed_deployments
