@@ -42,14 +42,10 @@ def _check_exception(logger, response):
 
 class Walle(object):
 
-    def __init__(self, url, auth_url=None, token=None,
-                 region=None, tenant=None, verify=True, logger=None):
+    def __init__(self, url, headers=None, verify=True, logger=None):
         self.url = url
-        self.auth_url = auth_url
-        self.token = token
+        self.headers = headers
         self.verify = verify
-        self.region = region
-        self.tenant = tenant
         self.response = None
         self.blueprints = BlueprintsClient(self, logger)
         self.deployments = DeploymentsClient(self, logger)
@@ -61,12 +57,7 @@ class Walle(object):
         self.logger = logger
 
     def get_headers(self):
-        headers = {}
-        headers["x-openstack-authorization"] = self.token
-        headers["x-openstack-keystore-url"] = self.auth_url
-        headers["x-openstack-keystore-region"] = self.region
-        headers["x-openstack-keystore-tenant"] = self.tenant
-        return headers
+        return self.headers
 
     def get_status(self):
         self.response = requests.get(

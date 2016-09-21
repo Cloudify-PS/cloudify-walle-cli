@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import click
-from cloudify_walle_cli import (get_logger, load_config, save_config,
+from cloudify_walle_cli import (get_logger, load_config, save_openstack_config,
                                 Configuration)
 from login import login_to_openstack
 from cloudify_walle_cli import get_walle_client
@@ -31,6 +31,13 @@ CONFIG = 'config'
 CLIENT = 'client'
 
 
+def validate_empty(ctx, param, value):
+    if value:
+        return value
+    else:
+        raise click.BadParameter('Parameter is mandatory')
+
+
 @click.group()
 @click.option('--debug/--no-debug', default=False)
 @click.pass_context
@@ -39,35 +46,60 @@ def cli(ctx, debug):
     ctx.obj[LOGGER].debug('cli')
 
 
-@cli.command()
+@cli.group(help="Login to service")
 @click.pass_context
-@click.argument('user')
-@click.option('-p', '--password', metavar='<password>', help='Password')
-@click.option('-h', '--host', metavar='<host>', help='Openstack host')
-@click.option('-t', '--tenant', metavar='<tenant-name>', help='Tenant name')
-@click.option('-r', '--region', metavar='<region-name>', help='Region name')
-@click.option('-s', '--walle-host', 'walle_host',
-              metavar='<walle>', help='URL of the Walle server')
-@click.option('-v', '--verify', metavar='<verify>',
+def login(ctx):
+    pass
+
+
+@login.command()
+@click.pass_context
+@click.option('-u', '--username', metavar='<username>',
+              callback=validate_empty, help='username')
+@click.option('-p', '--password', metavar='<password>',
+              callback=validate_empty, help='password')
+@click.option('-w', '--walle', metavar='<walle>',
+              callback=validate_empty, help='walle host')
+@click.option('-h', '--host', metavar='<host>',
+              callback=validate_empty, help='Openstack host')
+@click.option('-t', '--tenant', metavar='<tenant-name>',
+              callback=validate_empty, help='Tenant name')
+@click.option('-r', '--region', metavar='<region-name>',
+              callback=validate_empty, help='Region name')
+@click.option('--verify/--no-verify', metavar='<verify>',
               help='Verify connection', default=True)
-def login(ctx, user, password, host, tenant, region, walle_host, verify):
+def openstack(ctx, username, password, walle, host, tenant, region, verify):
+    "Login to openstack"
     logger = ctx.obj[LOGGER]
-    logger.debug('login')
-    verify = ("true" == str(verify).lower())
-    token = login_to_openstack(logger, user, password, host, tenant,
-                               walle_host, verify)
+    logger.debug('Openstack login')
+    token = login_to_openstack(logger, username, password, host, tenant,
+                               walle, verify)
     if not token:
         print "Wrong credentials"
     openstack = Configuration
-    openstack.user = user
-    openstack.password = password
+    openstack.user = username
     openstack.host = host
     openstack.token = token
-    openstack.walle_host = walle_host
-    openstack.region = region
+    openstack.walle_host = walle
     openstack.tenant = tenant
+    openstack.region = region
     openstack.verify = verify
-    save_config(openstack)
+    save_openstack_config(openstack)
+
+
+@login.command()
+@click.pass_context
+@click.option('-u', '--username', metavar='<username>',
+              callback=validate_empty, help='username')
+@click.option('-p', '--password', metavar='<password>',
+              callback=validate_empty, help='password')
+@click.option('-w', '--walle', metavar='<walle>',
+              callback=validate_empty, help='walle host')
+@click.option('--verify/--no-verify', metavar='<verify>',
+              help='Verify connection', default=True)
+def vcloud(ctx, username, password, walle, verify):
+    "Login to vcloud"
+    print "Not implemented."
 
 
 @cli.command()
@@ -88,6 +120,7 @@ def login(ctx, user, password, host, tenant, region, walle_host, verify):
               help='File name for the archove of blueprint')
 def blueprints(ctx, operation, blueprint_id, blueprint_file,
                blueprint_archive_file):
+    """Operations with blueprints"""
     logger = ctx.obj[LOGGER]
     logger.debug('blueprint')
     config = load_config(logger)
