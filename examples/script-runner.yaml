@@ -3,7 +3,7 @@ tosca_definitions_version: cloudify_dsl_1_2
 imports:
   - types.yaml
   - openstack.yaml
-  - https://raw.githubusercontent.com/0lvin/cloudify-script-plugin/1.4-build/plugin.yaml
+  - https://raw.githubusercontent.com/Cloudify-PS/cloudify-script-plugin/1.4walle/plugin.yaml
 
 inputs:
   agent_user:
